@@ -1,0 +1,472 @@
+@page "/"
+@using BlazorApp.Models
+@using Common.Classes
+@using Common.Discord
+@using Common.Pingg
+@using Microsoft.Extensions.Options
+@inject IOptions<List<CameraConfig>> CamerasOptions
+@inject PingService PingService
+@inject ILogger<Home> Logger
+@inject IDiscordWebHookService DiscordWebHookService
+@rendermode InteractiveServer
+
+<PageTitle>Cameras Monitor</PageTitle>
+
+<div class="page-wrapper">
+    <header>
+        <div class="logo">
+            <div class="logo-icon">🏠</div>
+            <span>The house of tonito !</span>
+        </div>
+        <p class="subtitle">Les caméras</p>
+    </header>
+
+    <main>
+        <div class="card">
+            <div class="card-header">
+                <p class="card-description">Systeme de surveillance de renards, pigeons, pies, chats et autres trucs très utiles.</p>
+            </div>
+
+            <div class="camera-grid">
+                @{ var index = 0; }
+                @foreach (var camera in _cameras)
+                {
+                    var status = _pingResults.GetValueOrDefault(camera.Name);
+                    var isLoading = _loadingStates.GetValueOrDefault(camera.Name);
+                    var colorClass = index % 2 == 0 ? "color-red" : "color-blue";
+
+                    <div class="camera-card @colorClass">
+                        <div class="camera-icon">📷</div>
+                        <div class="camera-info">
+                            <div class="camera-name">@camera.Name</div>
+                            <div class="camera-status">
+                                @if (isLoading)
+                                {
+                                    <span class="status-dot loading"></span>
+                                    <span>Ping en cours...</span>
+                                }
+                                else if (status == true)
+                                {
+                                    <span class="status-dot online"></span>
+                                    <span>En ligne</span>
+                                }
+                                else if (status == false)
+                                {
+                                    <span class="status-dot offline"></span>
+                                    <span>Hors ligne</span>
+                                }
+                                else
+                                {
+                                    <span class="status-dot unknown"></span>
+                                    <span>Statut inconnu</span>
+                                }
+                            </div>
+                        </div>
+                        <div class="camera-actions">
+                            <button class="btn-ping" @onclick="() => PingCamera(camera)" disabled="@isLoading" title="Ping">
+                                🔄
+                            </button>
+                            <a href="@camera.Url" @onclick="() => LogToDiscord(camera)" target="_blank" rel="noopener noreferrer" class="btn-link" title="Ouvrir">
+                                →
+                            </a>
+                        </div>
+                    </div>
+                    index++;
+                }
+            </div>
+
+            <div class="info-banner">
+                <div class="info-banner-content">
+                    <span>⏳</span>
+                    <span>Le chargement du flux peut prendre quelques secondes</span>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <span>© Tonito</span>
+    </footer>
+</div>
+
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    .page-wrapper {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        background: #0a0e27;
+        color: #e8eaed;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        overflow-x: hidden;
+    }
+
+    .page-wrapper::before {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background:
+            radial-gradient(circle at 20% 30%, rgba(59, 130, 246, 0.15) 0%, transparent 50%),
+            radial-gradient(circle at 80% 70%, rgba(139, 92, 246, 0.15) 0%, transparent 50%);
+        pointer-events: none;
+        z-index: 0;
+    }
+
+    header {
+        position: relative;
+        z-index: 10;
+        padding: 2rem 2rem 1rem;
+        text-align: center;
+    }
+
+    .logo {
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 1.5rem;
+        font-weight: 700;
+        letter-spacing: -0.5px;
+        margin-bottom: 0.5rem;
+    }
+
+    .logo-icon {
+        width: 40px;
+        height: 40px;
+        background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.3rem;
+    }
+
+    .subtitle {
+        color: #94a3b8;
+        font-size: 0.95rem;
+        font-weight: 400;
+    }
+
+    main {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+        position: relative;
+        z-index: 10;
+    }
+
+    .card {
+        background: rgba(15, 23, 42, 0.8);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 24px;
+        padding: 48px 40px;
+        width: 100%;
+        max-width: 520px;
+        box-shadow:
+            0 20px 60px rgba(0, 0, 0, 0.4),
+            0 0 0 1px rgba(255, 255, 255, 0.05);
+    }
+
+    .card-header {
+        text-align: center;
+        margin-bottom: 36px;
+    }
+
+    .card-title {
+        font-size: 1.75rem;
+        font-weight: 700;
+        letter-spacing: -0.5px;
+        margin-bottom: 8px;
+        background: linear-gradient(135deg, #fff, #94a3b8);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .card-description {
+        color: #64748b;
+        font-size: 0.9rem;
+    }
+
+    .camera-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .camera-card {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 20px;
+        background: rgba(30, 41, 59, 0.6);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 16px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .camera-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, transparent, rgba(255, 255, 255, 0.03));
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        pointer-events: none;
+    }
+
+    .camera-card:hover {
+        transform: translateY(-4px);
+        border-color: rgba(255, 255, 255, 0.12);
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
+    }
+
+    .camera-card:hover::before {
+        opacity: 1;
+    }
+
+    .camera-icon {
+        width: 56px;
+        height: 56px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.6rem;
+        flex-shrink: 0;
+        position: relative;
+        z-index: 1;
+    }
+
+    .camera-card.color-red .camera-icon {
+        background: linear-gradient(135deg, #ef4444, #dc2626);
+        box-shadow: 0 8px 24px rgba(239, 68, 68, 0.3);
+    }
+
+    .camera-card.color-blue .camera-icon {
+        background: linear-gradient(135deg, #3b82f6, #2563eb);
+        box-shadow: 0 8px 24px rgba(59, 130, 246, 0.3);
+    }
+
+    .camera-info {
+        flex: 1;
+    }
+
+    .camera-name {
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-bottom: 4px;
+        letter-spacing: -0.3px;
+    }
+
+    .camera-status {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.85rem;
+        color: #64748b;
+    }
+
+    .status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+    }
+
+    .status-dot.online {
+        background: #10b981;
+        box-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
+        animation: pulse 2s ease-in-out infinite;
+    }
+
+    .status-dot.offline {
+        background: #ef4444;
+        box-shadow: 0 0 8px rgba(239, 68, 68, 0.6);
+    }
+
+    .status-dot.loading {
+        background: #f59e0b;
+        box-shadow: 0 0 8px rgba(245, 158, 11, 0.6);
+        animation: pulse 0.5s ease-in-out infinite;
+    }
+
+    .status-dot.unknown {
+        background: #64748b;
+    }
+
+    @@keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+    }
+
+    .camera-actions {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        position: relative;
+        z-index: 2;
+    }
+
+    .btn-ping, .btn-link {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+        transition: all 0.2s ease;
+        border: none;
+        cursor: pointer;
+        text-decoration: none;
+    }
+
+    .btn-ping {
+        background: rgba(59, 130, 246, 0.2);
+        color: #93c5fd;
+    }
+
+    .btn-ping:hover:not(:disabled) {
+        background: rgba(59, 130, 246, 0.4);
+        transform: scale(1.05);
+    }
+
+    .btn-ping:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .btn-link {
+        background: rgba(139, 92, 246, 0.2);
+        color: #c4b5fd;
+    }
+
+    .btn-link:hover {
+        background: rgba(139, 92, 246, 0.4);
+        transform: scale(1.05);
+        color: #c4b5fd;
+    }
+
+    .info-banner {
+        margin-top: 24px;
+        padding: 16px;
+        background: rgba(59, 130, 246, 0.1);
+        border: 1px solid rgba(59, 130, 246, 0.2);
+        border-radius: 12px;
+        text-align: center;
+    }
+
+    .info-banner-content {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        font-size: 0.85rem;
+        color: #93c5fd;
+    }
+
+    footer {
+        position: relative;
+        z-index: 10;
+        padding: 2rem;
+        text-align: center;
+        color: #475569;
+        font-size: 0.85rem;
+    }
+
+    @@media (max-width: 640px) {
+        .card {
+            padding: 32px 24px;
+        }
+
+        .logo {
+            font-size: 1.3rem;
+        }
+
+        .card-title {
+            font-size: 1.5rem;
+        }
+
+        .camera-card {
+            padding: 16px;
+        }
+
+        .camera-icon {
+            width: 48px;
+            height: 48px;
+            font-size: 1.4rem;
+        }
+
+        .camera-name {
+            font-size: 1rem;
+        }
+    }
+</style>
+
+@code {
+    private List<CameraConfig> _cameras = new();
+    private Dictionary<string, bool?> _pingResults = new();
+    private Dictionary<string, bool> _loadingStates = new();
+
+    protected override void OnInitialized()
+    {
+        _cameras = CamerasOptions.Value ?? new List<CameraConfig>();
+        Logger.LogInformation("Chargement de {Count} cameras depuis la configuration", _cameras.Count);
+
+        foreach (var camera in _cameras)
+        {
+            _pingResults[camera.Name] = null;
+            _loadingStates[camera.Name] = false;
+
+            Task.Run(() => PingCamera(camera));
+        }
+    }
+
+    private async Task PingCamera(CameraConfig camera)
+    {
+        Logger.LogInformation("Demarrage du ping pour la camera {CameraName}", camera.Name);
+
+        _loadingStates[camera.Name] = true;
+        _pingResults[camera.Name] = null;
+        await InvokeAsync(StateHasChanged);
+
+        var success = await PingService.PingAsync(camera.Ip);
+
+        _pingResults[camera.Name] = success;
+        _loadingStates[camera.Name] = false;
+
+        if (success)
+        {
+            Logger.LogInformation("Ping reussi pour la camera {CameraName}", camera.Name);
+        }
+        else
+        {
+            Logger.LogWarning("Ping echoue pour la camera {CameraName}", camera.Name);
+        }
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task LogToDiscord(CameraConfig camera)
+    {
+        Logger.LogInformation("Connexion à la caméra {CameraName}", camera.Name);
+
+        await DiscordWebHookService.SendAsync($"{Emojis.Warn} Quelqu'un s'est connecté à la caméra {camera.Name}.");
+    }
+}

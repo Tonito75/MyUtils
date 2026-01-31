@@ -3,6 +3,7 @@ using Discord.Net;
 using Discord.WebSocket;
 using DiscordBot.DB;
 using DiscordBot.Extensions;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Newtonsoft.Json;
@@ -13,7 +14,7 @@ public class BotService : IHostedService
     private readonly string _token;
     private readonly TaskCompletionSource _readyTcs = new();
 
-    private readonly ApplicationDbContext _dbContext;
+    private readonly IDbContextFactory<ApplicationDbContext> _dbContextFactory;
 
     private readonly ulong _guildId;
 
@@ -22,13 +23,13 @@ public class BotService : IHostedService
     public BotService(
         DiscordSocketClient client,
         IConfiguration config,
-        ApplicationDbContext context)
+        IDbContextFactory<ApplicationDbContext> dbContextFactory)
     {
         _client = client;
         _token = config["Discord:Token"]!;
         _guildId = Convert.ToUInt64(config["Discord:ServerGuildId"]!);
 
-        _dbContext = context;
+        _dbContextFactory = dbContextFactory;
 
         client.SlashCommandExecuted += SlashCommandHandler;
     }
@@ -73,7 +74,8 @@ public class BotService : IHostedService
     private async Task HandleListCommand(SocketSlashCommand command)
     {
         var param = command.Data.Options.FirstOrDefault()?.Value;
-        var devices = await _dbContext.LanDevices.OrderBy(d => d.IsConnected).OrderBy(d => d.LastConnected).ToListAsync();
+        await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
+        var devices = await dbContext.LanDevices.OrderBy(d => d.IsConnected).OrderBy(d => d.LastConnected).ToListAsync();
 
         var nbDevicesByChunk = 10;
 

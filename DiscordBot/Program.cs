@@ -30,9 +30,18 @@ await Host.CreateDefaultBuilder(args)
         services.Configure<AppSettings>(context.Configuration);
         services.AddSingleton<BotService>();
         services.AddHostedService<BotService>(sp => sp.GetRequiredService<BotService>());
+        services.AddDbContextFactory<ApplicationDbContext>(options =>
+        {
+
+            if (appSettings == null)
+            {
+                throw new InvalidProgramException("Invalid appsettings.json");
+            }
+            options.UseSqlServer(appSettings.ConnectionString.DefaultConnection);
+        });
+        // Also register DbContext directly for scoped services (like Worker)
         services.AddDbContext<ApplicationDbContext>(options =>
         {
-            
             if (appSettings == null)
             {
                 throw new InvalidProgramException("Invalid appsettings.json");

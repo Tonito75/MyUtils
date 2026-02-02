@@ -4,6 +4,7 @@ using Common.Discord;
 using Common.Pingg;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.Extensions.FileProviders;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -69,13 +70,25 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-// Static assets AVANT l'authentification
-app.MapStaticAssets();
+// Static assets AVANT tout le reste - court-circuite le pipeline
+// 1. Fichiers dans Components/wwwroot (app.css, bootstrap, etc.)
+var webRootPath = Path.Combine(builder.Environment.ContentRootPath, "Components", "wwwroot");
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(webRootPath)
+});
+// 2. Fichiers Blazor générés (_framework, styles.css)
+app.UseStaticFiles();
+
+app.UseRouting();
 
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.UseAntiforgery();
+
+// Désactivé temporairement pour debug
+// app.UseStatusCodePagesWithReExecute("/not-found");
 
 // Endpoint de login
 app.MapPost("/api/login", async (HttpContext context, IConfiguration config) =>
@@ -109,8 +122,6 @@ app.MapGet("/logout", async (HttpContext context) =>
 }).RequireAuthorization();
 
 app.MapReverseProxy().RequireAuthorization("RequireAuth");
-
-app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
 
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();

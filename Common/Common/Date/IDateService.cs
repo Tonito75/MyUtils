@@ -13,5 +13,7 @@ namespace Common.Date
         string GetCurrentDateForFolderYYYYMMDD();
 
         string GetCurrentDateForFolderYesterdayYYYYMMDD();
+
+        string GetCurrentDateForFolderSinceYYYYMMDD(int days);
     }
 }

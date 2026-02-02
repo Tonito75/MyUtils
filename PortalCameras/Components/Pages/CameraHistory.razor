@@ -1,0 +1,62 @@
+﻿@page "/camerahistory/{CameraName}"
+@using Common.IO
+@inject IOptions<List<CameraConfig>> CamerasOptions
+@inject IOService IOService
+@inject NavigationManager Navigation
+@inject DateService DateService
+
+<h3>@CameraHistoryFolder</h3>
+
+@code {
+    [Parameter]
+    public required string CameraName { get; set; }
+
+    private List<CameraConfig> _cameras = new();
+
+    private string? CameraHistoryFolder { get; set; } = string.Empty;
+
+
+    protected async override void OnInitialized()
+    {
+        _cameras = CamerasOptions.Value ?? [];
+
+        CameraHistoryFolder = _cameras.FirstOrDefault(c => c.Name.ToLower() == CameraName)?.HistoryFolder;
+
+        if (string.IsNullOrEmpty(CameraHistoryFolder))
+        {
+            Navigation.NavigateTo("/not-found");
+        }
+
+        try
+        {
+            await Retrieve(false);
+        }
+        catch(Exception e)
+        {
+
+        }
+
+
+    }
+
+    private async Task Retrieve(bool useAI)
+    {
+        int days = 0;
+        int imagesFound = 0;
+
+        while (imagesFound < 3)
+        {
+            var currentDir = $"{CameraHistoryFolder}/{DateService.GetCurrentDateForFolderSinceYYYYMMDD(days)}";
+
+            if (IOService.DirectoryExists(currentDir))
+            {
+                var files = IOService.ListFiles(currentDir, "*.jpg", false);
+            }
+
+            var filesInDir = 
+
+            days--;
+        }
+    }
+
+}

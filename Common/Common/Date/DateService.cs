@@ -22,5 +22,10 @@ namespace Common.Date
         {
             return DateTime.Now.AddDays(-1).ToString("yyyy/MM/dd");
         }
+
+        public string GetCurrentDateForFolderSinceYYYYMMDD(int days)
+        {
+            return DateTime.Now.AddDays(-days).ToString("yyyy/MM/dd");
+        }
     }
 }

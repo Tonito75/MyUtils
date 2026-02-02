@@ -1,6 +1,8 @@
 using BlazorApp.Models;
 using BlazorPortalCamera.Components;
+using Common.Date;
 using Common.Discord;
+using Common.IO;
 using Common.Pingg;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -56,6 +58,8 @@ builder.Services.AddMudServices();
 builder.Services.Configure<List<CameraConfig>>(builder.Configuration.GetSection("Cameras"));
 builder.Services.AddScoped<PingService>();
 builder.Services.AddScoped<IDiscordWebHookService, DiscordWebHookService>();
+builder.Services.AddScoped<IDateService, DateService>();
+builder.Services.AddScoped<IIOService, IOService>(); 
 
 builder.Services.Configure<DiscordWebHookServiceOptions>(options =>
 {

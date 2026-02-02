@@ -1,14 +1,40 @@
 using BlazorApp.Models;
-using BlazorPortalCamera.Auth;
 using BlazorPortalCamera.Components;
 using Common.Discord;
 using Common.Pingg;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Ajouter l'authentification simple
-builder.Services.AddAuthentication("BasicAuth").AddScheme<AuthenticationSchemeOptions, YarpAuthHandler>("BasicAuth",null);
+// Authentification par cookies
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.LoginPath = "/login";
+        options.LogoutPath = "/logout";
+        options.ExpireTimeSpan = TimeSpan.FromHours(24);
+        options.SlidingExpiration = true;
+        options.Cookie.HttpOnly = true;
+        options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+        options.Cookie.SameSite = SameSiteMode.Strict;
+        options.Events = new CookieAuthenticationEvents
+        {
+            OnRedirectToLogin = context =>
+            {
+                // Pour les routes YARP, retourner 401 au lieu de rediriger
+                if (context.Request.Path.StartsWithSegments("/asnieres") ||
+                    context.Request.Path.StartsWithSegments("/villy"))
+                {
+                    context.Response.StatusCode = 401;
+                    return Task.CompletedTask;
+                }
+                context.Response.Redirect(context.RedirectUri);
+                return Task.CompletedTask;
+            }
+        };
+    });
+
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("RequireAuth", policy => policy.RequireAuthenticatedUser());
@@ -34,26 +60,58 @@ builder.Services.Configure<DiscordWebHookServiceOptions>(options =>
 
 var app = builder.Build();
 
-app.UseAuthentication();
-app.UseAuthorization();
-
-app.MapReverseProxy();
-
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
-
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
-app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
 app.UseHttpsRedirection();
+
+// Static assets AVANT l'authentification
+app.MapStaticAssets();
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.UseAntiforgery();
 
-app.MapStaticAssets();
+// Endpoint de login
+app.MapPost("/api/login", async (HttpContext context, IConfiguration config) =>
+{
+    var form = await context.Request.ReadFormAsync();
+    var username = form["username"].ToString();
+    var password = form["password"].ToString();
+
+    var validUser = config["Authentication:Username"];
+    var validPass = config["Authentication:Password"];
+
+    if (username == validUser && password == validPass)
+    {
+        var claims = new[] { new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.Name, username) };
+        var identity = new System.Security.Claims.ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+        var principal = new System.Security.Claims.ClaimsPrincipal(identity);
+
+        await context.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
+        context.Response.Redirect("/");
+        return;
+    }
+
+    context.Response.Redirect("/login?error=1");
+}).AllowAnonymous();
+
+// Endpoint de logout
+app.MapGet("/logout", async (HttpContext context) =>
+{
+    await context.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+    context.Response.Redirect("/login");
+}).RequireAuthorization();
+
+app.MapReverseProxy().RequireAuthorization("RequireAuth");
+
+app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
+
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 

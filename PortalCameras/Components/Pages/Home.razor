@@ -3,7 +3,9 @@
 @using Common.Classes
 @using Common.Discord
 @using Common.Pingg
+@using Microsoft.AspNetCore.Authorization
 @using Microsoft.Extensions.Options
+@attribute [Authorize]
 @inject IOptions<List<CameraConfig>> CamerasOptions
 @inject PingService PingService
 @inject ILogger<Home> Logger
@@ -14,11 +16,12 @@
 
 <div class="page-wrapper">
     <header>
+        <a href="/logout" class="btn-logout" title="Se deconnecter">Deconnexion</a>
         <div class="logo">
             <div class="logo-icon">🏠</div>
             <span>The house of tonito !</span>
         </div>
-        <p class="subtitle">Les caméras</p>
+        <p class="subtitle">Les cameras</p>
     </header>
 
     <main>
@@ -126,6 +129,25 @@
         z-index: 10;
         padding: 2rem 2rem 1rem;
         text-align: center;
+    }
+
+    .btn-logout {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        padding: 8px 16px;
+        background: rgba(239, 68, 68, 0.2);
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        border-radius: 8px;
+        color: #fca5a5;
+        font-size: 0.85rem;
+        text-decoration: none;
+        transition: all 0.2s ease;
+    }
+
+    .btn-logout:hover {
+        background: rgba(239, 68, 68, 0.3);
+        color: #fca5a5;
     }
 
     .logo {

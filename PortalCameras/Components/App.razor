@@ -1,11 +1,12 @@
-﻿<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html>
+<html lang="fr">
 
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <base href="/" />
-    <link rel="stylesheet" href="lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <link href="_content/MudBlazor/MudBlazor.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="app.css" />
     <link rel="stylesheet" href="BlazorPortalCamera.styles.css" />
     <link rel="icon" type="image/png" href="favicon.png" />
@@ -13,9 +14,61 @@
 </head>
 
 <body>
+    <MudThemeProvider @rendermode="InteractiveServer" Theme="@_theme" IsDarkMode="true" />
+    <MudPopoverProvider @rendermode="InteractiveServer" />
+    <MudDialogProvider @rendermode="InteractiveServer" />
+    <MudSnackbarProvider @rendermode="InteractiveServer" />
     <Routes />
-    <ReconnectModal />
     <script src="_framework/blazor.web.js"></script>
+    <script src="_content/MudBlazor/MudBlazor.min.js"></script>
 </body>
 
 </html>
+
+@code {
+    private MudTheme _theme = new()
+    {
+        PaletteLight = new PaletteLight()
+        {
+            Primary = "#3b82f6",
+            Secondary = "#8b5cf6",
+            Success = "#10b981",
+            Error = "#ef4444",
+            Warning = "#f59e0b",
+            Info = "#3b82f6"
+        },
+        PaletteDark = new PaletteDark()
+        {
+            Primary = "#3b82f6",
+            Secondary = "#8b5cf6",
+            Success = "#10b981",
+            Error = "#ef4444",
+            Warning = "#f59e0b",
+            Info = "#3b82f6",
+            Background = "#0a0e27",
+            Surface = "rgba(15, 23, 42, 0.8)",
+            DrawerBackground = "#0f172a",
+            AppbarBackground = "#0a0e27",
+            TextPrimary = "#e8eaed",
+            TextSecondary = "#94a3b8",
+            ActionDefault = "#94a3b8",
+            Divider = "rgba(255,255,255,0.08)"
+        },
+        LayoutProperties = new LayoutProperties()
+        {
+            DefaultBorderRadius = "16px"
+        },
+        Typography = new Typography()
+        {
+            Default = new DefaultTypography()
+            {
+                FontFamily = new[] { "Inter", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "sans-serif" },
+                FontWeight = "400"
+            },
+            H6 = new H6Typography()
+            {
+                FontWeight = "600"
+            }
+        }
+    };
+}

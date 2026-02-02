@@ -15,11 +15,18 @@
     <Folder Include="Components\Layout\" />
   </ItemGroup>
 
+  <!-- Copier Components/wwwroot vers wwwroot lors de la publication -->
+  <ItemGroup>
+    <Content Include="Components\wwwroot\**" CopyToPublishDirectory="PreserveNewest" LinkBase="wwwroot" />
+  </ItemGroup>
+
   <ItemGroup>
     <None Include="appsettings.json" />
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="MudBlazor" Version="8.15.0" />
+    <PackageReference Include="MudBlazor.ThemeManager" Version="3.0.0" />
     <PackageReference Include="Yarp.ReverseProxy" Version="2.3.0" />
   </ItemGroup>
 

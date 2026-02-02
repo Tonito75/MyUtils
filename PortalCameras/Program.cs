@@ -4,7 +4,6 @@ using Common.Discord;
 using Common.Pingg;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.Extensions.FileProviders;
 using MudBlazor.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -74,14 +73,7 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-// Static assets AVANT tout le reste - court-circuite le pipeline
-// 1. Fichiers dans Components/wwwroot (app.css, bootstrap, etc.)
-var webRootPath = Path.Combine(builder.Environment.ContentRootPath, "Components", "wwwroot");
-app.UseStaticFiles(new StaticFileOptions
-{
-    FileProvider = new PhysicalFileProvider(webRootPath)
-});
-// 2. Fichiers Blazor générés (_framework, styles.css)
+// Static assets (tout est dans wwwroot après publication)
 app.UseStaticFiles();
 
 app.UseRouting();

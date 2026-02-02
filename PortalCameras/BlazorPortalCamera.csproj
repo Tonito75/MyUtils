@@ -15,6 +15,11 @@
     <Folder Include="Components\Layout\" />
   </ItemGroup>
 
+  <!-- Copier Components/wwwroot vers wwwroot lors de la publication -->
+  <ItemGroup>
+    <Content Include="Components\wwwroot\**" CopyToPublishDirectory="PreserveNewest" LinkBase="wwwroot" />
+  </ItemGroup>
+
   <ItemGroup>
     <None Include="appsettings.json" />
   </ItemGroup>

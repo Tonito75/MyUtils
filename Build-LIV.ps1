@@ -150,8 +150,9 @@ function Publish-Project {
 
     Write-Info "dotnet $($PublishArgs -join ' ')"
 
-    $Process = Start-Process -FilePath "dotnet" -ArgumentList $PublishArgs -NoNewWindow -Wait -PassThru
-    return $Process.ExitCode -eq 0
+    # Invocation directe (evite les blocages de Start-Process)
+    & dotnet @PublishArgs
+    return $LASTEXITCODE -eq 0
 }
 
 # Traitement de chaque projet

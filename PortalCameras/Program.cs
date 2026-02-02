@@ -5,6 +5,7 @@ using Common.Pingg;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.Extensions.FileProviders;
+using MudBlazor.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -48,6 +49,9 @@ builder.Services.AddReverseProxy()
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+
+// MudBlazor
+builder.Services.AddMudServices();
 
 // Configuration des cameras
 builder.Services.Configure<List<CameraConfig>>(builder.Configuration.GetSection("Cameras"));

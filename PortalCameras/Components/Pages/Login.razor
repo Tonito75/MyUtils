@@ -2,51 +2,80 @@
 
 <PageTitle>Connexion - Cameras Monitor</PageTitle>
 
-<div class="page-wrapper">
-    <header>
-        <div class="logo">
-            <div class="logo-icon">🏠</div>
-            <span>The house of tonito !</span>
-        </div>
-        <p class="subtitle">Connexion requise</p>
-    </header>
+<MudContainer MaxWidth="MaxWidth.Small" Class="py-8">
+    <MudStack Spacing="4" AlignItems="AlignItems.Center">
 
-    <main>
-        <div class="card">
-            <div class="card-header">
-                <h1 class="card-title">Authentification</h1>
-                <p class="card-description">Veuillez entrer vos identifiants pour acceder aux cameras.</p>
-            </div>
+        @* Header *@
+        <MudStack AlignItems="AlignItems.Center" Spacing="1">
+            <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
+                <MudAvatar Color="Color.Primary" Variant="Variant.Filled" Size="Size.Large" Class="gradient-primary">
+                    <MudIcon Icon="@Icons.Material.Filled.Home" />
+                </MudAvatar>
+                <MudText Typo="Typo.h5" Class="fw-bold">The house of tonito !</MudText>
+            </MudStack>
+            <MudText Typo="Typo.subtitle1" Color="Color.Secondary">Connexion requise</MudText>
+        </MudStack>
 
-            @if (_showError)
-            {
-                <div class="error-banner">
-                    <span>Identifiants incorrects. Veuillez reessayer.</span>
-                </div>
-            }
+        @* Card principale *@
+        <MudPaper Class="pa-6 glass-card" Elevation="0" Style="width: 100%; max-width: 400px;">
+            <MudStack Spacing="4">
+                <MudStack AlignItems="AlignItems.Center" Spacing="1">
+                    <MudText Typo="Typo.h5" Class="gradient-text">Authentification</MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary" Align="Align.Center">
+                        Veuillez entrer vos identifiants pour acceder aux cameras.
+                    </MudText>
+                </MudStack>
 
-            <form method="post" action="/api/login">
-                <div class="form-group">
-                    <label for="username">Nom d'utilisateur</label>
-                    <input type="text" id="username" name="username" class="form-input" required autocomplete="username" />
-                </div>
+                @if (_showError)
+                {
+                    <MudAlert Severity="Severity.Error" Variant="Variant.Filled" Dense="true">
+                        Identifiants incorrects. Veuillez reessayer.
+                    </MudAlert>
+                }
 
-                <div class="form-group">
-                    <label for="password">Mot de passe</label>
-                    <input type="password" id="password" name="password" class="form-input" required autocomplete="current-password" />
-                </div>
+                <form method="post" action="/api/login">
+                    <MudStack Spacing="3">
+                        <MudTextField T="string"
+                                      Label="Nom d'utilisateur"
+                                      name="username"
+                                      Required="true"
+                                      RequiredError="Nom d'utilisateur requis"
+                                      Variant="Variant.Outlined"
+                                      autocomplete="username"
+                                      Adornment="Adornment.Start"
+                                      AdornmentIcon="@Icons.Material.Filled.Person" />
 
-                <button type="submit" class="btn-submit">
-                    Se connecter
-                </button>
-            </form>
-        </div>
-    </main>
+                        <MudTextField T="string"
+                                      Label="Mot de passe"
+                                      name="password"
+                                      InputType="InputType.Password"
+                                      Required="true"
+                                      RequiredError="Mot de passe requis"
+                                      Variant="Variant.Outlined"
+                                      autocomplete="current-password"
+                                      Adornment="Adornment.Start"
+                                      AdornmentIcon="@Icons.Material.Filled.Lock" />
 
-    <footer>
-        <span>© Tonito</span>
-    </footer>
-</div>
+                        <MudButton ButtonType="ButtonType.Submit"
+                                   Variant="Variant.Filled"
+                                   Color="Color.Primary"
+                                   Size="Size.Large"
+                                   FullWidth="true"
+                                   Class="gradient-button mt-2"
+                                   StartIcon="@Icons.Material.Filled.Login">
+                            Se connecter
+                        </MudButton>
+                    </MudStack>
+                </form>
+            </MudStack>
+        </MudPaper>
+
+        @* Footer *@
+        <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mt-4">
+            © Tonito
+        </MudText>
+    </MudStack>
+</MudContainer>
 
 @code {
     private bool _showError;

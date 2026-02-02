@@ -12,7 +12,7 @@ namespace BlazorPortalCamera.Components.Pages
 
         protected override void OnInitialized()
         {
-            _cameras = CamerasOptions.Value ?? new List<CameraConfig>();
+            _cameras = CamerasOptions.Value ?? [];
             Logger.LogInformation("Chargement de {Count} cameras depuis la configuration", _cameras.Count);
 
             foreach (var camera in _cameras)

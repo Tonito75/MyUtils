@@ -51,6 +51,15 @@ namespace Common.IO
         IEnumerable<string> ListFiles(string folderPath, string searchPattern = "*.*", bool searchSubdirectories = false);
 
         /// <summary>
+        /// Liste les noms des fichiers dans un dossier donné, avec leur date de création.
+        /// </summary>
+        /// <param name="folderPath">Chemin du dossier.</param>
+        /// <param name="searchPattern">Filtre de recherche (ex: *.txt).</param>
+        /// <param name="searchSubdirectories">Inclure les sous-dossiers ?</param>
+        /// <returns>Liste des chemins de fichiers.</returns>
+        IEnumerable<(string, DateTime)> ListFileNames(string folderPath, string searchPattern = "*.*", bool searchSubdirectories = false);
+
+        /// <summary>
         /// Lit le contenu d’un fichier texte.
         /// </summary>
         /// <param name="filePath">Chemin du fichier.</param>

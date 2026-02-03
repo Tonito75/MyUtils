@@ -1,11 +1,99 @@
 ﻿@page "/camerahistory/{CameraName}"
-@using Common.IO
 @inject IOptions<List<CameraConfig>> CamerasOptions
 @inject IOService IOService
 @inject NavigationManager Navigation
 @inject DateService DateService
+@inject ILogger<CameraHistory> Logger
+@inject IConfiguration Configuration
+@attribute [Authorize]
+@rendermode InteractiveServer
 
-<h3>@CameraHistoryFolder</h3>
+<PageTitle>Historique - @CameraName</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="py-8">
+    <MudStack Spacing="4" AlignItems="AlignItems.Center">
+
+        @* Header *@
+        <MudStack AlignItems="AlignItems.Center" Spacing="1">
+            <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
+                <MudAvatar Color="Color.Primary" Variant="Variant.Filled" Size="Size.Large" Class="gradient-primary">
+                    <MudIcon Icon="@Icons.Material.Filled.History" />
+                </MudAvatar>
+                <MudText Typo="Typo.h5" Class="fw-bold">Historique - @CameraName</MudText>
+            </MudStack>
+            <MudText Typo="Typo.subtitle1" Color="Color.Secondary">Les @maxImages dernières captures</MudText>
+        </MudStack>
+
+        @* Boutons retour et IA *@
+        <MudStack Style="width: 100%;"
+                  Row="true"
+                  AlignItems="AlignItems.Center"
+                  Justify="Justify.SpaceBetween">
+            <MudButton Href="/"
+                       Style="width:180px;"
+                       Variant="Variant.Outlined"
+                       Color="Color.Primary"
+                       Size="Size.Small"
+                       StartIcon="@Icons.Material.Filled.ArrowBack">
+                Retour
+            </MudButton>
+            <MudStack Row="true" AlignItems="AlignItems.Center">
+                <MudText Align="Align.Right" Typo="Typo.caption" Color="Color.Secondary">Détection intelligente (experimental)</MudText>
+                <MudSwitch Size="Size.Small" @bind-Value="UseAI" Color="Color.Secondary"></MudSwitch>
+            </MudStack>
+        </MudStack>
+        
+
+        @* Contenu principal *@
+        <MudPaper Class="pa-6 glass-card" Elevation="0" Style="width: 100%;">
+            @if (_isLoading)
+            {
+                <MudStack AlignItems="AlignItems.Center" Spacing="2" Class="py-8">
+                    <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+                    <MudText Typo="Typo.body2" Color="Color.Secondary">Chargement des images...</MudText>
+                </MudStack>
+            }
+            else if (_images.Count == 0)
+            {
+                <MudAlert Severity="Severity.Info" Variant="Variant.Outlined">
+                    Aucune image trouvée pour cette caméra.
+                </MudAlert>
+            }
+            else
+            {
+                <div class="images-container">
+                    @foreach (var (image, creationDate) in _images)
+                    {
+                        <MudPaper Class="pa-3 camera-card image-card" Elevation="2">
+                            <MudStack Spacing="2" AlignItems="AlignItems.Center">
+                                <MudChip T="string"
+                                         Color="Color.Primary"
+                                         Size="Size.Small"
+                                         Icon="@Icons.Material.Filled.Schedule">
+                                    @DateService.FormatTimeAgoFrench(creationDate)
+                                </MudChip>
+                                <MudText Typo="Typo.caption" Color="Color.Secondary" Align="Align.Center">
+                                    @creationDate.ToString("dd/MM/yyyy à HH:mm")
+                                </MudText>
+                                <MudLink Href="@image" Target="_blank" Class="image-link">
+                                    <MudImage Src="@image"
+                                              Alt="Capture"
+                                              ObjectFit="ObjectFit.Cover"
+                                              Class="rounded capture-image" />
+                                </MudLink>
+                            </MudStack>
+                        </MudPaper>
+                    }
+                </div>
+            }
+        </MudPaper>
+
+        @* Footer *@
+        <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mt-4">
+            @_images.Count image(s) trouvée(s)
+        </MudText>
+    </MudStack>
+</MudContainer>
 
 @code {
     [Parameter]
@@ -13,19 +101,34 @@
 
     private List<CameraConfig> _cameras = new();
 
-    private string? CameraHistoryFolder { get; set; } = string.Empty;
+    // Chemin physique pour lister les fichiers (ex: \\tonito-nas\...\villy\mouvements)
+    private string _physicalFolder = string.Empty;
+    // Chemin URL pour afficher les images (ex: /camera-history/villy/mouvements)
+    private string _urlFolder = string.Empty;
 
+    private List<(string,DateTime)> _images = new();
+    private bool _isLoading = true;
+    private int _imagesFound = 0;
 
-    protected async override void OnInitialized()
+    public bool UseAI { get; set; } = false;
+
+    private readonly int maxImages = 10;
+
+    protected override async Task OnInitializedAsync()
     {
         _cameras = CamerasOptions.Value ?? [];
 
-        CameraHistoryFolder = _cameras.FirstOrDefault(c => c.Name.ToLower() == CameraName)?.HistoryFolder;
-
-        if (string.IsNullOrEmpty(CameraHistoryFolder))
+        var camera = _cameras.FirstOrDefault(c => c.Name.Equals(CameraName, StringComparison.OrdinalIgnoreCase));
+        if (camera == null || string.IsNullOrEmpty(camera.HistoryFolder))
         {
             Navigation.NavigateTo("/not-found");
+            return;
         }
+
+        var baseFolder = Configuration["BaseHistoryFolder"];
+        _physicalFolder = $"{baseFolder}\\{camera.HistoryFolder}";
+        // Convertir les backslashes en slashes pour l'URL
+        _urlFolder = $"/camera-history/{camera.HistoryFolder.Replace("\\", "/")}";
 
         try
         {
@@ -33,30 +136,123 @@
         }
         catch(Exception e)
         {
-
+            Logger.LogError(e.Message, e);
         }
-
-
+        finally
+        {
+            _isLoading = false;
+        }
     }
 
     private async Task Retrieve(bool useAI)
     {
         int days = 0;
-        int imagesFound = 0;
+        var maxIteration = 1000;
 
-        while (imagesFound < 3)
+        while (_imagesFound < maxImages)
         {
-            var currentDir = $"{CameraHistoryFolder}/{DateService.GetCurrentDateForFolderSinceYYYYMMDD(days)}";
+            var dateFolder = DateService.GetCurrentDateForFolderSinceYYYYMMDD(days);
+            var physicalDir = $"{_physicalFolder}\\{dateFolder}";
 
-            if (IOService.DirectoryExists(currentDir))
+            if (IOService.DirectoryExists(physicalDir))
             {
-                var files = IOService.ListFiles(currentDir, "*.jpg", false);
+                Logger.LogInformation($"Listing files in {physicalDir}...");
+
+                var files = IOService.ListFileNames(physicalDir, "*.jpg", false);
+
+                foreach (var (fileName,creationDate) in files)
+                {
+                    var imageUrl = $"{_urlFolder}/{dateFolder}/{fileName}";
+                    _images.Add((imageUrl, creationDate));
+                    _imagesFound++;
+
+                    if (_imagesFound == maxImages) break;
+                }
+            }
+            else
+            {
+                Logger.LogInformation($"Directory {physicalDir} does not exist.");
             }
 
-            var filesInDir = 
+            days++;
 
-            days--;
+            maxIteration--;
+
+            if (maxIteration == 0)
+            {
+                return;
+            }
+        }
+    }
+}
+
+<style>
+    .images-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+        justify-content: center;
+        width: 100%;
+    }
+
+    .image-card {
+        flex: 1 1 100%;
+        max-width: 100%;
+    }
+
+    .capture-image {
+        width: 100%;
+        height: auto;
+        max-height: 300px;
+        object-fit: cover;
+        transition: transform 0.2s ease, opacity 0.2s ease;
+    }
+
+    .image-link {
+        display: block;
+        width: 100%;
+        cursor: pointer;
+    }
+
+    .image-link:hover .capture-image {
+        transform: scale(1.02);
+        opacity: 0.9;
+    }
+
+    /* Tablette */
+    @@media (min-width: 600px) {
+        .image-card {
+            flex: 1 1 calc(50% - 16px);
+            max-width: calc(50% - 16px);
+        }
+
+        .capture-image {
+            max-height: 350px;
         }
     }
 
-}
+    /* Desktop */
+    @@media (min-width: 960px) {
+        .image-card {
+            flex: 1 1 calc(33.333% - 16px);
+            max-width: calc(33.333% - 16px);
+        }
+
+        .capture-image {
+            max-height: 400px;
+        }
+    }
+
+    /* Grand écran */
+    @@media (min-width: 1280px) {
+        .image-card {
+            flex: 0 1 400px;
+            max-width: 400px;
+        }
+
+        .capture-image {
+            height: 300px;
+            max-height: none;
+        }
+    }
+</style>

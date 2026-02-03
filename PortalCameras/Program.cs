@@ -6,9 +6,24 @@ using Common.IO;
 using Common.Pingg;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.Extensions.FileProviders;
 using MudBlazor.Services;
+using Serilog;
 
-var builder = WebApplication.CreateBuilder(args);
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Information()
+    .MinimumLevel.Override("Microsoft", Serilog.Events.LogEventLevel.Warning)
+    .MinimumLevel.Override("Microsoft.AspNetCore", Serilog.Events.LogEventLevel.Warning)
+    .WriteTo.Console()
+    .WriteTo.File("logs/log-.txt", rollingInterval: RollingInterval.Day)
+    .CreateLogger();
+
+try
+{
+    Log.Information("Démarrage de l'application");
+
+    var builder = WebApplication.CreateBuilder(args);
+    builder.Host.UseSerilog();
 
 // Authentification par cookies
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
@@ -58,8 +73,8 @@ builder.Services.AddMudServices();
 builder.Services.Configure<List<CameraConfig>>(builder.Configuration.GetSection("Cameras"));
 builder.Services.AddScoped<PingService>();
 builder.Services.AddScoped<IDiscordWebHookService, DiscordWebHookService>();
-builder.Services.AddScoped<IDateService, DateService>();
-builder.Services.AddScoped<IIOService, IOService>(); 
+builder.Services.AddScoped<DateService>();
+builder.Services.AddScoped<IOService>(); 
 
 builder.Services.Configure<DiscordWebHookServiceOptions>(options =>
 {
@@ -121,9 +136,41 @@ app.MapGet("/logout", async (HttpContext context) =>
     context.Response.Redirect("/login");
 }).RequireAuthorization();
 
+// Endpoint pour servir les images du NAS
+app.MapGet("/camera-history/{**path}", (string path, IConfiguration config) =>
+{
+    var baseFolder = config["BaseHistoryFolder"];
+    if (string.IsNullOrEmpty(baseFolder))
+        return Results.NotFound();
+
+    var fullPath = Path.Combine(baseFolder, path.Replace("/", "\\"));
+
+    if (!File.Exists(fullPath))
+        return Results.NotFound();
+
+    var contentType = Path.GetExtension(fullPath).ToLower() switch
+    {
+        ".jpg" or ".jpeg" => "image/jpeg",
+        ".png" => "image/png",
+        ".gif" => "image/gif",
+        _ => "application/octet-stream"
+    };
+
+    return Results.File(fullPath, contentType);
+}).RequireAuthorization();
+
 app.MapReverseProxy().RequireAuthorization("RequireAuth");
 
 app.MapRazorComponents<App>()
-    .AddInteractiveServerRenderMode();
+        .AddInteractiveServerRenderMode();
 
-app.Run();
+    app.Run();
+}
+catch (Exception ex)
+{
+    Log.Fatal(ex, "L'application s'est arrêtée de manière inattendue");
+}
+finally
+{
+    Log.CloseAndFlush();
+}

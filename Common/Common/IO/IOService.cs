@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -118,7 +119,33 @@ namespace Common.IO
                 }
 
                 var searchOption = searchSubdirectories ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
-                return Directory.GetFiles(folderPath, searchPattern, searchOption);
+                return new DirectoryInfo(folderPath)
+                  .GetFiles("*.jpg")
+                  .OrderByDescending(f => f.CreationTime)
+                  .Select(f => f.FullName)
+                  .ToList();
+            }
+            catch (Exception ex)
+            {
+                throw new IOServiceException("Erreur lors du listing des fichiers.", ex);
+            }
+        }
+
+        public IEnumerable<(string,DateTime)> ListFileNames(string folderPath, string searchPattern = "*.*", bool searchSubdirectories = false)
+        {
+            try
+            {
+                if (!DirectoryExists(folderPath))
+                {
+                    throw new IOServiceException($"Le dossier n'existe pas: {folderPath}");
+                }
+                var searchOption = searchSubdirectories ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
+
+                return new DirectoryInfo(folderPath)
+                  .GetFiles("*.jpg")
+                  .OrderByDescending(f => f.CreationTime)
+                  .Select(f => (f.Name,f.CreationTime))
+                  .ToList();
             }
             catch (Exception ex)
             {

@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.Extensions.FileProviders;
 using MudBlazor.Services;
 using Serilog;
+using System;
 
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Information()
@@ -137,8 +138,11 @@ app.MapGet("/logout", async (HttpContext context) =>
 }).RequireAuthorization();
 
 // Endpoint pour servir les images du NAS
-app.MapGet("/camera-history/{**path}", (string path, IConfiguration config) =>
+app.MapGet("/camera-history/{**path}", (HttpContext context, string path, IConfiguration config) =>
 {
+    if (!context.User.Identity?.IsAuthenticated ?? true)
+        return Results.Unauthorized();
+
     var baseFolder = config["BaseHistoryFolder"];
     if (string.IsNullOrEmpty(baseFolder))
         return Results.NotFound();

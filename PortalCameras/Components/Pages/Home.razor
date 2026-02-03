@@ -11,6 +11,7 @@
 @inject ILogger<Home> Logger
 @inject IDiscordWebHookService DiscordWebHookService
 @rendermode InteractiveServer
+@inject NavigationManager Navigation
 
 <PageTitle>Cameras Monitor</PageTitle>
 
@@ -102,6 +103,11 @@
                                                Href="@camera.Url"
                                                Target="_blank"
                                                OnClick="() => LogToDiscord(camera)" />
+                                <MudIconButton Icon="@Icons.Material.Filled.History"
+                                               Color="Color.Primary"
+                                               Variant="Variant.Filled"
+                                               Size="Size.Medium"
+                                               OnClick="() => RedirectToHistory(camera)"/>
                             </MudStack>
                         </MudPaper>
                     }

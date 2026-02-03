@@ -55,5 +55,10 @@ namespace BlazorPortalCamera.Components.Pages
 
             await DiscordWebHookService.SendAsync($"{Emojis.Warn} Quelqu'un s'est connecté à la caméra {camera.Name}.");
         }
+
+        private async Task RedirectToHistory(CameraConfig camera)
+        {
+            Navigation.NavigateTo($"/camerahistory/{camera.Name.ToLower()}");
+        }
     }
 }

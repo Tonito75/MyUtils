@@ -1,5 +1,6 @@
 using BlazorApp.Models;
 using BlazorPortalCamera.Components;
+using BlazorPortalCamera.Services;
 using Common.Date;
 using Common.Discord;
 using Common.IO;
@@ -75,7 +76,8 @@ builder.Services.Configure<List<CameraConfig>>(builder.Configuration.GetSection(
 builder.Services.AddScoped<PingService>();
 builder.Services.AddScoped<IDiscordWebHookService, DiscordWebHookService>();
 builder.Services.AddScoped<DateService>();
-builder.Services.AddScoped<IOService>(); 
+builder.Services.AddScoped<IOService>();
+builder.Services.AddScoped<DetectThingsService>();
 
 builder.Services.Configure<DiscordWebHookServiceOptions>(options =>
 {
@@ -110,15 +112,13 @@ app.UseAntiforgery();
 app.MapPost("/api/login", async (HttpContext context, IConfiguration config) =>
 {
     var form = await context.Request.ReadFormAsync();
-    var username = form["username"].ToString();
-    var password = form["password"].ToString();
+    var password = form["password"].ToString().ToLower();
 
-    var validUser = config["Authentication:Username"];
     var validPass = config["Authentication:Password"];
 
-    if (username == validUser && password == validPass)
+    if (password == validPass)
     {
-        var claims = new[] { new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.Name, username) };
+        var claims = new[] { new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.Name, "villy") };
         var identity = new System.Security.Claims.ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
         var principal = new System.Security.Claims.ClaimsPrincipal(identity);
 

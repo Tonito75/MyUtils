@@ -1,4 +1,7 @@
 ﻿@page "/camerahistory/{CameraName}"
+@using BlazorPortalCamera.Services
+@using Common.IO
+@using Microsoft.AspNetCore.Authorization
 @inject IOptions<List<CameraConfig>> CamerasOptions
 @inject IOService IOService
 @inject NavigationManager Navigation
@@ -6,6 +9,7 @@
 @inject ILogger<CameraHistory> Logger
 @inject IConfiguration Configuration
 @attribute [Authorize]
+@inject DetectThingsService DetectThingsService
 @rendermode InteractiveServer
 
 <PageTitle>Historique - @CameraName</PageTitle>
@@ -39,7 +43,7 @@
             </MudButton>
             <MudStack Row="true" AlignItems="AlignItems.Center">
                 <MudText Align="Align.Right" Typo="Typo.caption" Color="Color.Secondary">Détection intelligente (experimental)</MudText>
-                <MudSwitch Size="Size.Small" @bind-Value="UseAI" Color="Color.Secondary"></MudSwitch>
+                <MudSwitch T="bool" Value="UseAI" ValueChanged="@(b => OnChange(b))" Size="Size.Small" Color="Color.Secondary"></MudSwitch>
             </MudStack>
         </MudStack>
         
@@ -50,10 +54,10 @@
             {
                 <MudStack AlignItems="AlignItems.Center" Spacing="2" Class="py-8">
                     <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
-                    <MudText Typo="Typo.body2" Color="Color.Secondary">Chargement des images...</MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary">Chargement des images..(@_images.Count image(s) trouvée(s))</MudText>
                 </MudStack>
             }
-            else if (_images.Count == 0)
+            @if (_images.Count == 0 && !_isLoading)
             {
                 <MudAlert Severity="Severity.Info" Variant="Variant.Outlined">
                     Aucune image trouvée pour cette caméra.
@@ -106,6 +110,8 @@
     // Chemin URL pour afficher les images (ex: /camera-history/villy/mouvements)
     private string _urlFolder = string.Empty;
 
+    private string _apiDetectThingsUrl = string.Empty;
+
     private List<(string,DateTime)> _images = new();
     private bool _isLoading = true;
     private int _imagesFound = 0;
@@ -124,6 +130,8 @@
             Navigation.NavigateTo("/not-found");
             return;
         }
+
+        _apiDetectThingsUrl = Configuration["ApiDetectThingsUrl"];
 
         var baseFolder = Configuration["BaseHistoryFolder"];
         _physicalFolder = $"{baseFolder}\\{camera.HistoryFolder}";
@@ -144,10 +152,38 @@
         }
     }
 
+    private async Task OnChange(bool newValue)
+    {
+        UseAI = newValue;
+
+        _images.Clear();
+        _imagesFound = 0;
+        _isLoading = true;
+
+        // Force le re-render pour afficher le spinner
+        StateHasChanged();
+
+        try
+        {
+            await Retrieve(UseAI);
+        }
+        catch (Exception e)
+        {
+            Logger.LogError(e.Message, e);
+        }
+        finally
+        {
+            _isLoading = false;
+            StateHasChanged(); // Re-render final
+        }
+    }
+
     private async Task Retrieve(bool useAI)
     {
         int days = 0;
-        var maxIteration = 1000;
+        var maxIteration = 200;
+        var maxApiFails = 5;
+        var errorForDetectApi = 0;
 
         while (_imagesFound < maxImages)
         {
@@ -163,8 +199,45 @@
                 foreach (var (fileName,creationDate) in files)
                 {
                     var imageUrl = $"{_urlFolder}/{dateFolder}/{fileName}";
-                    _images.Add((imageUrl, creationDate));
-                    _imagesFound++;
+
+                    var absoluteImageUrl = Navigation.ToAbsoluteUri(imageUrl).ToString();
+
+                    if (useAI)
+                    {
+                        var imageFolder = $"{physicalDir}/{fileName}";
+
+                        var (isThing, error) = await DetectThingsService.DetectThingsAsync(imageFolder, _apiDetectThingsUrl);
+
+                        if (!string.IsNullOrEmpty(error))
+                        {
+                            Logger.LogError($"Can't connect to the detection API for image {imageUrl} because {error}");
+                            errorForDetectApi++;
+                            if (errorForDetectApi > maxApiFails)
+                            {
+                                Logger.LogError($"More than {maxApiFails} api calls have failed. Exiting image retrieving.");
+                                return;
+                            }
+                        }
+                        else if (isThing)
+                        {
+                            Logger.LogInformation($"Thing detected on image {imageUrl}");
+                            _images.Add((imageUrl, creationDate));
+                            _imagesFound++;
+                            await InvokeAsync(StateHasChanged);
+                            await Task.Yield();
+                        }
+                        else
+                        {
+                            Logger.LogInformation($"Nothing detected on image {imageUrl}");
+                        }
+                    }
+                    else
+                    {
+                        _images.Add((imageUrl, creationDate));
+                        _imagesFound++;
+                        await InvokeAsync(StateHasChanged);
+                        await Task.Yield();
+                    }
 
                     if (_imagesFound == maxImages) break;
                 }
@@ -174,6 +247,7 @@
                 Logger.LogInformation($"Directory {physicalDir} does not exist.");
             }
 
+            
             days++;
 
             maxIteration--;

@@ -10,7 +10,7 @@
 @inject PingService PingService
 @inject ILogger<Home> Logger
 @inject IDiscordWebHookService DiscordWebHookService
-@rendermode InteractiveServer
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
 @inject NavigationManager Navigation
 
 <PageTitle>Cameras Monitor</PageTitle>
@@ -98,12 +98,14 @@
                                                Size="Size.Medium"
                                                Href="@camera.Url"
                                                Target="_blank"
-                                               OnClick="() => LogToDiscord(camera)" />
+                                               OnClick="async () => await LogToDiscord(camera.Url)" />
+
                                 <MudIconButton Icon="@Icons.Material.Filled.History"
                                                Color="Color.Primary"
                                                Variant="Variant.Filled"
                                                Size="Size.Medium"
-                                               OnClick="() => RedirectToHistory(camera)"/>
+                                               Href="@($"/camerahistory/{camera.Name.ToLower()}")"
+                                               OnClick='async () => await LogToDiscord($"/camerahistory/{camera.Name.ToLower()}")' />
                             </MudStack>
                         </MudPaper>
                     }

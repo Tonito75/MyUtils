@@ -10,7 +10,7 @@
 @inject IConfiguration Configuration
 @attribute [Authorize]
 @inject DetectThingsService DetectThingsService
-@rendermode InteractiveServer
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
 
 <PageTitle>Historique - @CameraName</PageTitle>
 

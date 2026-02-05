@@ -49,16 +49,13 @@ namespace BlazorPortalCamera.Components.Pages
             await InvokeAsync(StateHasChanged);
         }
 
-        private async Task LogToDiscord(CameraConfig camera)
+        private async Task LogToDiscord(string url)
         {
-            Logger.LogInformation("Connexion à la caméra {CameraName}", camera.Name);
+            Logger.LogInformation("Connexion à {url}", url);
 
-            await DiscordWebHookService.SendAsync($"{Emojis.Warn} Quelqu'un s'est connecté à la caméra {camera.Name}.");
+            await DiscordWebHookService.SendAsync($"{Emojis.Warn} Quelqu'un s'est connecté à l'url {url}.");
         }
 
-        private async Task RedirectToHistory(CameraConfig camera)
-        {
-            Navigation.NavigateTo($"/camerahistory/{camera.Name.ToLower()}");
-        }
+        
     }
 }

@@ -118,15 +118,16 @@ public class WorkerWatcher : DiscordWorker<CameraWatcherOptions>
                         LogService.Log($"Rain and night : image {lastFtpFile.FullName} to be deleted.");
                         await DiscordService.SendAsync($"{Emojis.Rain} Nuit + pluie : fichier {lastFtpFile.FullName} ignoré + supprimé.");
 
-                        try
+                        (success,error) = await _ftpService.DeleteFile(lastFtpFile.FullName);
+                        if (success)
                         {
-                            _ioService.DeleteFile(lastFtpFile.FullName, 5);
                             _lastSentFileName = string.Empty;
                             return;
                         }
-                        catch (Exception ex)
+                        else
                         {
-                            LogService.Error($"Could not delete file {lastFtpFile.FullName} because {ex.Message}");
+                            LogService.Error($"Could not delete file {lastFtpFile.FullName} because {error}");
+                            await DiscordService.SendAsync($"{Emojis.RedCross} Impossible de supprimer le fichier car {error}.");
                         }
                     }
 

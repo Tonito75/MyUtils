@@ -66,6 +66,28 @@ namespace Common.FTP
             }
         }
 
+        public async Task<(bool,string)> DeleteFile(string remotePath)
+        {
+            if (_ftpClient == null)
+            {
+                return (false, "Le client ftp n'a pas été initialisé");
+            }
+            try
+            {
+                await _ftpClient.AutoConnect();
+
+                await _ftpClient.DeleteFile(remotePath);
+
+                await _ftpClient.Disconnect();
+
+                return (true, string.Empty);
+            }
+            catch( Exception ex)
+            {
+                return (false, ex.Message);
+            }
+        }
+
         public async Task<(bool,string)> DownloadFilesFromFtpToLocalFolder(string remoteFolder, string localFolder)
         {
             if (_ftpClient == null)

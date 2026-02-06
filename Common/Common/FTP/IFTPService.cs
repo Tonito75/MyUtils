@@ -19,6 +19,8 @@ namespace Common.FTP
 
         Task<(bool, string)> CleanFolder(string remoteFolder, string extension);
 
+        Task<(bool, string)> DeleteFile(string remotePath);
+
         Task<(bool, string)> Send(byte[] fileContent, string remotePath);
 
         Task<(bool, string)> DownloadFilesFromFtpToLocalFolder(string remoteFolder, string localFolder);

@@ -33,43 +33,43 @@ param(
 $ProjectConfigs = @{
     # Services (Workers)
     "CameraWatcher" = @{
-        ProjectPath = "CameraWatcher\CameraWatcher.csproj"
+        ProjectPath = "Services\CameraWatcher\CameraWatcher.csproj"
         Framework   = "net8.0"
         SingleFile  = $true
     }
     "MinecraftLogsToDiscord" = @{
-        ProjectPath = "MinecraftLogsToDiscord\MinecraftLogsToDiscord.csproj"
+        ProjectPath = "Services\MinecraftLogsToDiscord\MinecraftLogsToDiscord.csproj"
         Framework   = "net8.0"
         SingleFile  = $true
     }
     "TimelapseCreator" = @{
-        ProjectPath = "TimelapseCreator\TimelapseCreator.csproj"
+        ProjectPath = "Services\TimelapseCreator\TimelapseCreator.csproj"
         Framework   = "net8.0"
         SingleFile  = $true   # DLLs natives extraites au runtime via IncludeNativeLibrariesForSelfExtract
     }
     "MinecraftWorldToNAS" = @{
-        ProjectPath = "MinecraftWorldToNAS\MinecraftWorldToNAS.csproj"
+        ProjectPath = "Services\MinecraftWorldToNAS\MinecraftWorldToNAS.csproj"
         Framework   = "net8.0"
         SingleFile  = $true
     }
     "DiscordBot" = @{
-        ProjectPath = "DiscordBot\DiscordBot.csproj"
+        ProjectPath = "Services\DiscordBot\DiscordBot.csproj"
         Framework   = "net10.0"
         SingleFile  = $true
     }
     # WebApps
     "BlazorPortalCamera" = @{
-        ProjectPath = "PortalCameras\BlazorPortalCamera.csproj"
+        ProjectPath = "WebApps\PortalCameras\BlazorPortalCamera.csproj"
         Framework   = "net10.0"
         SingleFile  = $false  # WebApps avec wwwroot ne supportent pas bien le single-file
     }
     "EndPoints" = @{
-        ProjectPath = "ApiFreeBoxCore\EndPoints\EndPoints.csproj"
+        ProjectPath = "Apis\ApiFreeBoxCore\EndPoints\EndPoints.csproj"
         Framework   = "net10.0"
         SingleFile  = $false  # WebApps avec wwwroot ne supportent pas bien le single-file
     }
     "ApiMeteo" = @{
-        ProjectPath = "ApiMeteo\ApiMeteo.csproj"
+        ProjectPath = "Apis\ApiMeteo\ApiMeteo.csproj"
         Framework   = "net10.0"
         SingleFile  = $false  # WebApps avec wwwroot ne supportent pas bien le single-file
     }

@@ -26,9 +26,10 @@ app.MapGet("/", async (IConfiguration config) =>
 
     var rainWeaterCodesList = rainWeatherCodes.Split(',').ToList().Select(c => Convert.ToInt32(c));
 
-    var _client = new HttpClient();
+    
     try
     {
+        using var _client = new HttpClient();
         var response = await _client.GetStringAsync(meteoApiUrl);
         using var json = JsonDocument.Parse(response);
 

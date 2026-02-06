@@ -4,20 +4,22 @@
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>disable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <UserSecretsId>dotnet-CameraWatcher-6bd9c8b4-64a4-43fa-87d1-0f0e1e022a0f</UserSecretsId>
+    <UserSecretsId>dotnet-MinecraftLogsToDiscord-87991097-5f0a-419b-ab3c-aba027e110a4</UserSecretsId>
+    <DockerDefaultTargetOS>Windows</DockerDefaultTargetOS>
   </PropertyGroup>
 
+  <!-- Exclure appsettings.json de la publication -->
   <ItemGroup>
     <Content Remove="appsettings.json" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="appsettings.json" />
+    <None Include="appsettings.json">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.0" />
     <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="8.0.0" />
+    <PackageReference Include="OneOf" Version="3.0.271" />
   </ItemGroup>
 
 	<ItemGroup Condition="'$(Configuration)' == 'Release'">
@@ -25,9 +27,7 @@
 		<None Remove="appsettings.Development.json" />
 	</ItemGroup>
 	<ItemGroup>
-		<ProjectReference Include="..\Common\Common.Hosting\Common.Hosting.csproj" />
-	</ItemGroup>
-	<ItemGroup>
-		<ProjectReference Include="..\Common\Common\Common.csproj" />
+		<ProjectReference Include="..\..\Common\Common.Hosting\Common.Hosting.csproj" />
+		<ProjectReference Include="..\..\Common\Common\Common.csproj" />
 	</ItemGroup>
 </Project>

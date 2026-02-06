@@ -36,9 +36,9 @@
 
   <ItemGroup>
     <Folder Include="DB\Registry\Write\" />
-    <ProjectReference Include="..\ApiFreeBoxCore\Domain\Domain.csproj" />
-    <ProjectReference Include="..\Common\Common\Common.csproj" />
-    <ProjectReference Include="..\Common\Common.Hosting\Common.Hosting.csproj" />
+    <ProjectReference Include="..\..\Apis\ApiFreeBoxCore\Domain\Domain.csproj" />
+    <ProjectReference Include="..\..\Common\Common.Hosting\Common.Hosting.csproj" />
+    <ProjectReference Include="..\..\Common\Common\Common.csproj" />
   </ItemGroup>
 
 </Project>

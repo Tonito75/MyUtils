@@ -4,15 +4,15 @@
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>disable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <UserSecretsId>dotnet-MinecraftWorldToNAS-2c6f7f6e-f7f7-4f1d-a2e4-673b61968631</UserSecretsId>
+    <UserSecretsId>dotnet-CameraWatcher-6bd9c8b4-64a4-43fa-87d1-0f0e1e022a0f</UserSecretsId>
   </PropertyGroup>
 
-  <!-- Exclure appsettings.json de la publication -->
   <ItemGroup>
     <Content Remove="appsettings.json" />
-    <None Include="appsettings.json">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="appsettings.json" />
   </ItemGroup>
 
   <ItemGroup>
@@ -24,8 +24,10 @@
 		<Content Remove="appsettings.Development.json" />
 		<None Remove="appsettings.Development.json" />
 	</ItemGroup>
+
 	<ItemGroup>
-		<ProjectReference Include="..\Common\Common\Common.csproj" />
-		<ProjectReference Include="..\Common\Common.Hosting\Common.Hosting.csproj" />
+	  <ProjectReference Include="..\..\Common\Common.Hosting\Common.Hosting.csproj" />
+	  <ProjectReference Include="..\..\Common\Common.OpenCV\Common.OpenCV.csproj" />
+	  <ProjectReference Include="..\..\Common\Common\Common.csproj" />
 	</ItemGroup>
 </Project>

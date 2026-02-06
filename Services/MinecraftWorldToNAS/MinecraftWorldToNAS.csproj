@@ -4,8 +4,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>disable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <UserSecretsId>dotnet-MinecraftLogsToDiscord-87991097-5f0a-419b-ab3c-aba027e110a4</UserSecretsId>
-    <DockerDefaultTargetOS>Windows</DockerDefaultTargetOS>
+    <UserSecretsId>dotnet-MinecraftWorldToNAS-2c6f7f6e-f7f7-4f1d-a2e4-673b61968631</UserSecretsId>
   </PropertyGroup>
 
   <!-- Exclure appsettings.json de la publication -->
@@ -19,15 +18,15 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.0" />
     <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="8.0.0" />
-    <PackageReference Include="OneOf" Version="3.0.271" />
   </ItemGroup>
 
 	<ItemGroup Condition="'$(Configuration)' == 'Release'">
 		<Content Remove="appsettings.Development.json" />
 		<None Remove="appsettings.Development.json" />
 	</ItemGroup>
+
 	<ItemGroup>
-		<ProjectReference Include="..\Common\Common\Common.csproj" />
-		<ProjectReference Include="..\Common\Common.Hosting\Common.Hosting.csproj" />
+	  <ProjectReference Include="..\..\Common\Common.Hosting\Common.Hosting.csproj" />
+	  <ProjectReference Include="..\..\Common\Common\Common.csproj" />
 	</ItemGroup>
 </Project>

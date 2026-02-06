@@ -35,11 +35,11 @@
 		<None Remove="appsettings.Development.json" />
 	</ItemGroup>
 	<ItemGroup>
-		<ProjectReference Include="..\Common\Common\Common.csproj" />
-		<ProjectReference Include="..\Common\Common.Hosting\Common.Hosting.csproj" />
-		<ProjectReference Include="..\Common\Common.OpenCV\Common.OpenCV.csproj" />
+	  <Folder Include="ffmpeg\" />
 	</ItemGroup>
 	<ItemGroup>
-	  <Folder Include="ffmpeg\" />
+	  <ProjectReference Include="..\..\Common\Common.Hosting\Common.Hosting.csproj" />
+	  <ProjectReference Include="..\..\Common\Common.OpenCV\Common.OpenCV.csproj" />
+	  <ProjectReference Include="..\..\Common\Common\Common.csproj" />
 	</ItemGroup>
 </Project>

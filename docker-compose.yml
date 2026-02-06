@@ -1,0 +1,6 @@
+services:
+  apifreebox:
+    build:
+      context: .
+      dockerfile: _docker/apifreebox.dockerfile
+    image: tonito75/apifreebox:latest

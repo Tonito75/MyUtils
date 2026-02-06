@@ -68,6 +68,11 @@ $ProjectConfigs = @{
         Framework   = "net10.0"
         SingleFile  = $false  # WebApps avec wwwroot ne supportent pas bien le single-file
     }
+    "ApiMeteo" = @{
+        ProjectPath = "ApiMeteo\ApiMeteo.csproj"
+        Framework   = "net10.0"
+        SingleFile  = $false  # WebApps avec wwwroot ne supportent pas bien le single-file
+    }
 }
 
 # Couleurs pour l'affichage

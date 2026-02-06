@@ -7,19 +7,6 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
-  <!-- Exclure appsettings.json de la publication -->
-  <ItemGroup>
-    <Content Remove="appsettings.json" />
-    <None Include="appsettings.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(Configuration)' == 'Release'">
-    <Content Remove="appsettings.Development.json" />
-    <None Remove="appsettings.Development.json" />
-  </ItemGroup>
-
   <ItemGroup>
     <PackageReference Include="Discord.Net" Version="3.18.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.1" />

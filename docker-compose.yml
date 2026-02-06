@@ -4,3 +4,39 @@ services:
       context: .
       dockerfile: _docker/apifreebox.dockerfile
     image: tonito75/apifreebox:latest
+
+  apimeteo:
+    build:
+      context: .
+      dockerfile: _docker/apimeteo.dockerfile
+    image: tonito75/apimeteo:latest
+
+  camerawatcher:
+    build:
+      context: .
+      dockerfile: _docker/camerawatcher.dockerfile
+    image: tonito75/camerawatcher:latest
+
+  discordbot:
+    build:
+      context: .
+      dockerfile: _docker/discordbot.dockerfile
+    image: tonito75/discordbot:latest
+
+  minecraftlogstodiscord:
+    build:
+      context: .
+      dockerfile: _docker/minecraftlogstodiscord.dockerfile
+    image: tonito75/minecraftlogstodiscord:latest
+
+  minecraftworldtonas:
+    build:
+      context: .
+      dockerfile: _docker/minecraftworldtonas.dockerfile
+    image: tonito75/minecraftworldtonas:latest
+
+  timelapsecreator:
+    build:
+      context: .
+      dockerfile: _docker/timelapsecreator.dockerfile
+    image: tonito75/timelapsecreator:latest

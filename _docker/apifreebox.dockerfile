@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/sdk:10.0-preview AS build
+FROM mcr.microsoft.com/dotnet/sdk:10.0-preview-alpine AS build
 WORKDIR /src
 
 COPY Common/Common/Common.csproj Common/Common/
@@ -12,7 +12,7 @@ COPY Common/Common/ Common/Common/
 COPY Apis/ApiFreeBoxCore/ Apis/ApiFreeBoxCore/
 RUN dotnet publish Apis/ApiFreeBoxCore/EndPoints/EndPoints.csproj -c Release -o /app
 
-FROM mcr.microsoft.com/dotnet/aspnet:10.0-preview AS runtime
+FROM mcr.microsoft.com/dotnet/aspnet:10.0-preview-alpine AS runtime
 WORKDIR /app
 COPY --from=build /app .
 

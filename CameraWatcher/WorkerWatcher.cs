@@ -9,6 +9,8 @@ using Common.FTP;
 using Common.Hosting.Worker;
 using Common.IO;
 using Common.Logger;
+using System.Threading.Tasks;
+using System.Text.Json;
 
 namespace CameraWatcher;
 
@@ -20,6 +22,10 @@ public class WorkerWatcher : DiscordWorker<CameraWatcherOptions>
 
     private bool _firstExec = true;
     private string _lastSentFileName = string.Empty;
+    private readonly string _apiMeteoUrl = string.Empty;
+
+    private readonly int _apiMeteoErrorProtections = 15;
+    private int _currentApiMeteoErrors = 0;
 
     public WorkerWatcher(
         IOptions<CameraWatcherOptions> options,
@@ -28,12 +34,15 @@ public class WorkerWatcher : DiscordWorker<CameraWatcherOptions>
         IDiscordWebHookService discordService,
         IFTPService ftpService,
         IDateService dateService,
-        IIOService ioService)
+        IIOService ioService,
+        IConfiguration configuration)
         : base(options, lifetime, logService, discordService)
     {
         _ftpService = ftpService;
         _dateService = dateService;
         _ioService = ioService;
+
+        _apiMeteoUrl = configuration["ApiMeteoUrl"];
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -85,7 +94,46 @@ public class WorkerWatcher : DiscordWorker<CameraWatcherOptions>
                     return;
                 }
 
-                var tempFolder = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+                (success, error, (var isDay, var isRaining)) = await GetMeteoInfos(watcherConfiguration.ApiMeteoUrl);
+                if (!success)
+                {
+                    LogService.Error(error);
+
+                    _currentApiMeteoErrors++;
+
+                    if (_currentApiMeteoErrors == 1)
+                    {
+                        await DiscordService.SendAsync($"Erreur lors de la récupération des informations météo : {error}. Le fichier sera envoyé.");
+                    }
+                    else if (_currentApiMeteoErrors == _apiMeteoErrorProtections)
+                    {
+                        _currentApiMeteoErrors = 0;
+                    }
+                }
+                else
+                {
+                    // Nuit + pluie : on filtre !
+                    if(!isDay && isRaining)
+                    {
+                        LogService.Log($"Rain and night : image {lastFtpFile.FullName} to be deleted.");
+                        await DiscordService.SendAsync($"{Emojis.Rain} Nuit + pluie : fichier {lastFtpFile.FullName} ignoré + supprimé.");
+
+                        try
+                        {
+                            _ioService.DeleteFile(lastFtpFile.FullName, 5);
+                            _lastSentFileName = string.Empty;
+                            return;
+                        }
+                        catch (Exception ex)
+                        {
+                            LogService.Error($"Could not delete file {lastFtpFile.FullName} because {ex.Message}");
+                        }
+                    }
+
+                    LogService.Log($"Rain : {isRaining}, Day : {isDay} : handling file normally");
+                }
+
+                    var tempFolder = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
                 Directory.CreateDirectory(tempFolder);
 
                 LogService.Log($"Téléchargement du fichier distant {lastFtpFile.FullName}");
@@ -117,6 +165,26 @@ public class WorkerWatcher : DiscordWorker<CameraWatcherOptions>
 
                 LogService.Log($"Detected new file on ftp {watcherConfiguration.FtpConfiguration} and sent to discord successfully.");
             }
+        }
+    }
+
+    private async Task<(bool Error,string ErrorMessage, (bool IsDay, bool IsRaining) Result)> GetMeteoInfos(string apiUrl)
+    {
+        try
+        {
+            using var client = new HttpClient();
+
+            var response = await client.GetStringAsync(apiUrl);
+            var json = JsonDocument.Parse(response);
+
+            var isDay = json.RootElement.GetProperty("isDay").GetBoolean();
+            var isRaining = json.RootElement.GetProperty("isRaining").GetBoolean();
+
+            return (true, string.Empty,(isDay, isRaining));
+        }
+        catch (Exception ex)
+        {
+            return (false, ex.Message, (false, false));
         }
     }
 }

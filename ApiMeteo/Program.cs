@@ -10,8 +10,16 @@ builder.Services.AddOpenApi();
 
 var app = builder.Build();
 
-app.MapGet("/", async (IConfiguration config) =>
+app.MapGet("/{location}", async (string location, IConfiguration config) =>
 {
+    var lat = config[$"Locations:{location}:lat"];
+    var lng = config[$"Locations:{location}:lng"];
+
+    if(string.IsNullOrEmpty(lat) || string.IsNullOrEmpty(lng))
+    {
+        return Results.NotFound();
+    }
+
     var meteoApiUrl = config["OpenMeteoApiUrl"];
     if (string.IsNullOrEmpty(meteoApiUrl))
     {
@@ -26,11 +34,10 @@ app.MapGet("/", async (IConfiguration config) =>
 
     var rainWeaterCodesList = rainWeatherCodes.Split(',').ToList().Select(c => Convert.ToInt32(c));
 
-    
     try
     {
         using var _client = new HttpClient();
-        var response = await _client.GetStringAsync(meteoApiUrl);
+        var response = await _client.GetStringAsync(meteoApiUrl.Replace("LAT",lat).Replace("LNG", lng));
         using var json = JsonDocument.Parse(response);
 
         var currentWeather = json.RootElement.GetProperty("current");

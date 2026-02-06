@@ -39,5 +39,7 @@ namespace Common.Classes
         public static readonly string Success = "🏆";
 
         public static readonly string Wait = "⌛";
+
+        public static readonly string Rain = "🌧️";
     }
 }

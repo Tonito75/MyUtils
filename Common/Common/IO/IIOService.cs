@@ -42,6 +42,14 @@ namespace Common.IO
         void CopyFileToFolder(string fileSourcePath, string folderDestinationPath, bool overwrite = false);
 
         /// <summary>
+        /// Deletes a file, with x retries (default 1)
+        /// </summary>
+        /// <param name="path"></param>
+        /// <param name="tries"></param>
+        /// <returns></returns>
+        void DeleteFile(string path, int tries = 1);
+
+        /// <summary>
         /// Liste les fichiers dans un dossier donné.
         /// </summary>
         /// <param name="folderPath">Chemin du dossier.</param>

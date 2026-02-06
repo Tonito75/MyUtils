@@ -58,6 +58,28 @@ namespace Common.IO
             }
         }
 
+        public void DeleteFile(string path, int tries = 1)
+        {
+            var currentTries = 0;
+            Exception? finalEx = null;
+            do
+            {
+                try
+                {
+                    File.Delete(path);
+                    return;
+                }
+                catch (Exception ex)
+                {
+                    currentTries++;
+                    finalEx = ex;
+                }
+            }
+            while (currentTries < tries);
+
+            throw finalEx;
+        }
+
         public void CopyFile(string fileSourcePath, string fileDestinationPath, bool overwrite = false)
         {
             try

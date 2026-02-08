@@ -4,7 +4,9 @@ using DiscordBot;
 using DiscordBot.DB;
 using DiscordBot.Services.GetDevices;
 using Common.Hosting.Extensions;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Configuration;
 
 var host = Host.CreateDefaultBuilder(args)
     .UseWindowsService()

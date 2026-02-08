@@ -17,11 +17,11 @@ services:
       dockerfile: _docker/camerawatcher.dockerfile
     image: tonito75/camerawatcher:latest
 
-  discordbot:
+  freeboxbot:
     build:
       context: .
       dockerfile: _docker/discordbot.dockerfile
-    image: tonito75/discordbot:latest
+    image: tonito75/freeboxbot:latest
 
   minecraftlogstodiscord:
     build:

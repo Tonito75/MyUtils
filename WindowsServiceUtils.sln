@@ -41,6 +41,17 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "WebApps", "WebApps", "{8AAA
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlazorPortalCamera", "WebApps\PortalCameras\BlazorPortalCamera.csproj", "{F0165626-2C6F-26E1-E2D9-124F537285A5}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_docker", "_docker", "{CDCAA514-9550-4F1B-8537-DFC3724D41CD}"
+	ProjectSection(SolutionItems) = preProject
+		_docker\apifreebox.dockerfile = _docker\apifreebox.dockerfile
+		_docker\apimeteo.dockerfile = _docker\apimeteo.dockerfile
+		_docker\camerawatcher.dockerfile = _docker\camerawatcher.dockerfile
+		_docker\discordbot.dockerfile = _docker\discordbot.dockerfile
+		_docker\minecraftlogstodiscord.dockerfile = _docker\minecraftlogstodiscord.dockerfile
+		_docker\minecraftworldtonas.dockerfile = _docker\minecraftworldtonas.dockerfile
+		_docker\timelapsecreator.dockerfile = _docker\timelapsecreator.dockerfile
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

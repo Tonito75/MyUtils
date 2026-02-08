@@ -13,7 +13,7 @@ COPY Apis/ApiFreeBoxCore/Domain/ Apis/ApiFreeBoxCore/Domain/
 COPY Services/DiscordBot/ Services/DiscordBot/
 RUN dotnet publish Services/DiscordBot/DiscordBot.csproj -c Release -o /app
 
-FROM mcr.microsoft.com/dotnet/runtime:10.0-preview-alpine AS runtime
+FROM mcr.microsoft.com/dotnet/runtime:10.0-preview AS runtime
 WORKDIR /app
 COPY --from=build /app .
 

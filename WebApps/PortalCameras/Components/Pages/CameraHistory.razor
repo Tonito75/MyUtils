@@ -134,7 +134,7 @@
         _apiDetectThingsUrl = Configuration["ApiDetectThingsUrl"];
 
         var baseFolder = Configuration["BaseHistoryFolder"];
-        _physicalFolder = $"{baseFolder}\\{camera.HistoryFolder}";
+        _physicalFolder = Path.Combine(baseFolder, camera.HistoryFolder);
         // Convertir les backslashes en slashes pour l'URL
         _urlFolder = $"/camera-history/{camera.HistoryFolder.Replace("\\", "/")}";
 
@@ -188,7 +188,7 @@
         while (_imagesFound < maxImages)
         {
             var dateFolder = DateService.GetCurrentDateForFolderSinceYYYYMMDD(days);
-            var physicalDir = $"{_physicalFolder}\\{dateFolder}";
+            var physicalDir = Path.Combine(_physicalFolder, dateFolder);
 
             if (IOService.DirectoryExists(physicalDir))
             {
@@ -204,7 +204,7 @@
 
                     if (useAI)
                     {
-                        var imageFolder = $"{physicalDir}/{fileName}";
+                        var imageFolder = Path.Combine(physicalDir, fileName);
 
                         var (isThing, error) = await DetectThingsService.DetectThingsAsync(imageFolder, _apiDetectThingsUrl);
 
@@ -244,7 +244,7 @@
             }
             else
             {
-                Logger.LogInformation($"Directory {physicalDir} does not exist.");
+                Logger.LogInformation($"Directory {physicalDir} does not exist !!");
             }
 
             

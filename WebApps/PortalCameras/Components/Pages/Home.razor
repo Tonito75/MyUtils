@@ -104,8 +104,7 @@
                                                Color="Color.Primary"
                                                Variant="Variant.Filled"
                                                Size="Size.Medium"
-                                               Href="@($"/camerahistory/{camera.Name.ToLower()}")"
-                                               OnClick='async () => await LogToDiscord($"/camerahistory/{camera.Name.ToLower()}")' />
+                                               OnClick="() => NavigateToHistory(camera.Name)" />
                             </MudStack>
                         </MudPaper>
                     }

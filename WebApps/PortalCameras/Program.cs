@@ -140,17 +140,30 @@ app.MapGet("/logout", async (HttpContext context) =>
 // Endpoint pour servir les images du NAS
 app.MapGet("/camera-history/{**path}", (HttpContext context, string path, IConfiguration config) =>
 {
+    Log.Information("camera-history endpoint hit - Path: {Path}, Authenticated: {IsAuth}",
+        path, context.User.Identity?.IsAuthenticated);
+
     if (!context.User.Identity?.IsAuthenticated ?? true)
         return Results.Unauthorized();
 
     var baseFolder = config["BaseHistoryFolder"];
     if (string.IsNullOrEmpty(baseFolder))
+    {
+        Log.Information($"Base folder was empty.");
         return Results.NotFound();
+    }
 
-    var fullPath = Path.Combine(baseFolder, path.Replace("/", "\\"));
+    Log.Information($"Base folder is {baseFolder}");
+
+    var fullPath = Path.Combine(baseFolder, path);
 
     if (!File.Exists(fullPath))
+    {
+        Log.Information($"The full path of image {fullPath} does not exists.");
         return Results.NotFound();
+    }
+
+    Log.Information($"The full path of image {fullPath} does exists !");
 
     var contentType = Path.GetExtension(fullPath).ToLower() switch
     {
@@ -160,6 +173,7 @@ app.MapGet("/camera-history/{**path}", (HttpContext context, string path, IConfi
         _ => "application/octet-stream"
     };
 
+    context.Response.Headers.CacheControl = "no-cache, no-store, must-revalidate";
     return Results.File(fullPath, contentType);
 }).RequireAuthorization();
 

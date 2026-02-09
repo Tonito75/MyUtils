@@ -33,7 +33,7 @@
                   Row="true"
                   AlignItems="AlignItems.Center"
                   Justify="Justify.SpaceBetween">
-            <MudButton Href="/"
+            <MudButton OnClick='() => Navigation.NavigateTo("/")'
                        Style="width:180px;"
                        Variant="Variant.Outlined"
                        Color="Color.Primary"
@@ -198,48 +198,56 @@
 
                 foreach (var (fileName,creationDate) in files)
                 {
-                    var imageUrl = $"{_urlFolder}/{dateFolder}/{fileName}";
-
-                    var absoluteImageUrl = Navigation.ToAbsoluteUri(imageUrl).ToString();
-
-                    if (useAI)
+                    try
                     {
-                        var imageFolder = Path.Combine(physicalDir, fileName);
+                        var imageUrl = $"{_urlFolder}/{dateFolder}/{fileName}";
 
-                        var (isThing, error) = await DetectThingsService.DetectThingsAsync(imageFolder, _apiDetectThingsUrl);
+                        var absoluteImageUrl = Navigation.ToAbsoluteUri(imageUrl).ToString();
 
-                        if (!string.IsNullOrEmpty(error))
+                        if (useAI)
                         {
-                            Logger.LogError($"Can't connect to the detection API for image {imageUrl} because {error}");
-                            errorForDetectApi++;
-                            if (errorForDetectApi > maxApiFails)
+                            var imageFolder = Path.Combine(physicalDir, fileName);
+
+                            var (isThing, error) = await DetectThingsService.DetectThingsAsync(imageFolder, _apiDetectThingsUrl);
+
+                            if (!string.IsNullOrEmpty(error))
                             {
-                                Logger.LogError($"More than {maxApiFails} api calls have failed. Exiting image retrieving.");
-                                return;
+                                Logger.LogError($"Can't connect to the detection API for image {imageUrl} because {error}");
+                                errorForDetectApi++;
+                                if (errorForDetectApi > maxApiFails)
+                                {
+                                    Logger.LogError($"More than {maxApiFails} api calls have failed. Exiting image retrieving.");
+                                    return;
+                                }
+                            }
+                            else if (isThing)
+                            {
+                                Logger.LogInformation($"Thing detected on image {imageUrl}");
+                                _images.Add((imageUrl, creationDate));
+                                _imagesFound++;
+                                await InvokeAsync(StateHasChanged);
+                                await Task.Yield();
+                            }
+                            else
+                            {
+                                Logger.LogInformation($"Nothing detected on image {imageUrl}");
                             }
                         }
-                        else if (isThing)
+                        else
                         {
-                            Logger.LogInformation($"Thing detected on image {imageUrl}");
                             _images.Add((imageUrl, creationDate));
                             _imagesFound++;
                             await InvokeAsync(StateHasChanged);
                             await Task.Yield();
                         }
-                        else
-                        {
-                            Logger.LogInformation($"Nothing detected on image {imageUrl}");
-                        }
-                    }
-                    else
-                    {
-                        _images.Add((imageUrl, creationDate));
-                        _imagesFound++;
-                        await InvokeAsync(StateHasChanged);
-                        await Task.Yield();
-                    }
 
-                    if (_imagesFound == maxImages) break;
+                        if (_imagesFound == maxImages) break;
+                    }
+                    catch(Exception ex)
+                    {
+                        Logger.LogError($"Error while retrieving image {fileName} : {ex.Message}, {ex.StackTrace}");
+                    }
+                    
                 }
             }
             else

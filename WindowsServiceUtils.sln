@@ -49,6 +49,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_docker", "_docker", "{CDCA
 		_docker\discordbot.dockerfile = _docker\discordbot.dockerfile
 		_docker\minecraftlogstodiscord.dockerfile = _docker\minecraftlogstodiscord.dockerfile
 		_docker\minecraftworldtonas.dockerfile = _docker\minecraftworldtonas.dockerfile
+		portalcamera.build-push.bat = portalcamera.build-push.bat
+		_docker\portalcamera.dockerfile = _docker\portalcamera.dockerfile
 		_docker\timelapsecreator.dockerfile = _docker\timelapsecreator.dockerfile
 	EndProjectSection
 EndProject

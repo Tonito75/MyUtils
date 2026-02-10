@@ -6,4 +6,5 @@ public class CameraConfig
     public string Ip { get; set; } = string.Empty;
     public string Url { get; set; } = string.Empty;
     public string HistoryFolder { get; set;  } = string.Empty;
+    public string Group { get; set; } = string.Empty;
 }

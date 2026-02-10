@@ -69,24 +69,27 @@ body::before {
     background-clip: text;
 }
 
-/* ==================== Status Chips ==================== */
-.status-chip {
-    margin-top: 4px;
+/* ==================== Group Divider ==================== */
+.group-divider {
+    border-color: rgba(255, 255, 255, 0.1) !important;
 }
 
-.pulse-success {
-    animation: pulse-glow 2s ease-in-out infinite;
+/* ==================== Camera Actions ==================== */
+.camera-actions {
+    flex-direction: row;
 }
 
-@keyframes pulse-glow {
-    0%, 100% {
-        opacity: 1;
-        box-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
+@media (max-width: 500px) {
+    .camera-actions {
+        flex-direction: column;
     }
-    50% {
-        opacity: 0.8;
-        box-shadow: 0 0 16px rgba(16, 185, 129, 0.8);
-    }
+}
+
+/* ==================== Status Dot ==================== */
+.status-dot {
+    font-size: 10px !important;
+    width: 10px !important;
+    height: 10px !important;
 }
 
 /* ==================== Utilities ==================== */

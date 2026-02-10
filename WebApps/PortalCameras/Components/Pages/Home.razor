@@ -45,70 +45,71 @@
                     Systeme de surveillance de renards, pigeons, pies, chats et autres trucs tres utiles.
                 </MudText>
 
-                @* Liste des cameras *@
-                <MudStack Spacing="2">
-                    @foreach (var camera in _cameras)
-                    {
-                        var status = _pingResults.GetValueOrDefault(camera.Name);
-                        var isLoading = _loadingStates.GetValueOrDefault(camera.Name);
+                @* Liste des cameras par groupe *@
+                @foreach (var group in _cameras.GroupBy(c => c.Group))
+                {
+                    <MudStack Spacing="2">
+                        <MudStack Row AlignItems="AlignItems.Center" Spacing="2" Class="mt-3">
+                            <MudDivider Class="group-divider" Style="flex: 1;" />
+                            <MudText Typo="Typo.subtitle2" Color="Color.Secondary">@(string.IsNullOrEmpty(group.Key) ? "Autres" : group.Key)</MudText>
+                            <MudDivider Class="group-divider" Style="flex: 1;" />
+                        </MudStack>
 
-                        <MudPaper Class="pa-4 camera-card" Elevation="0">
-                            <MudStack Row AlignItems="AlignItems.Center" Spacing="3">
-                                <MudAvatar Color="Color.Primary" Size="Size.Large" Class="gradient-primary">
+                        @foreach (var camera in group)
+                        {
+                            var status = _pingResults.GetValueOrDefault(camera.Name);
+                            var isLoading = _loadingStates.GetValueOrDefault(camera.Name);
+
+                            <MudPaper Class="pa-4 camera-card" Elevation="0">
+                                <MudStack Row AlignItems="AlignItems.Center" Spacing="3">
                                     <MudIcon Icon="@Icons.Material.Filled.Videocam" />
-                                </MudAvatar>
 
-                                <MudStack Spacing="0" Class="flex-grow-1">
-                                    <MudText Typo="Typo.h6">@camera.Name</MudText>
-                                    @if (isLoading)
-                                    {
-                                        <MudChip T="string" Color="Color.Warning" Size="Size.Small"
-                                                 Icon="@Icons.Material.Filled.Sync" Class="status-chip">
-                                            Ping en cours...
-                                        </MudChip>
-                                    }
-                                    else if (status == true)
-                                    {
-                                        <MudChip T="string" Color="Color.Success" Size="Size.Small"
-                                                 Icon="@Icons.Material.Filled.CheckCircle" Class="status-chip pulse-success">
-                                            En ligne
-                                        </MudChip>
-                                    }
-                                    else if (status == false)
-                                    {
-                                        <MudChip T="string" Color="Color.Error" Size="Size.Small"
-                                                 Icon="@Icons.Material.Filled.Error" Class="status-chip">
-                                            Hors ligne
-                                        </MudChip>
-                                    }
-                                    else
-                                    {
-                                        <MudChip T="string" Color="Color.Default" Size="Size.Small"
-                                                 Icon="@Icons.Material.Filled.HelpOutline" Class="status-chip">
-                                            Statut inconnu
-                                        </MudChip>
-                                    }
-                                    
+                                    <MudStack Spacing="0" Class="flex-grow-1">
+                                        <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
+                                            <MudText Typo="Typo.h6">@camera.Name</MudText>
+                                            @if (isLoading)
+                                            {
+                                                <MudIcon Icon="@Icons.Material.Filled.Sync" Size="Size.Small" Color="Color.Warning" Class="status-dot" />
+                                            }
+                                            else if (status == true)
+                                            {
+                                                <MudIcon Icon="@Icons.Material.Filled.Circle" Size="Size.Small" Color="Color.Success" Class="status-dot" />
+                                            }
+                                            else if (status == false)
+                                            {
+                                                <MudIcon Icon="@Icons.Material.Filled.Circle" Size="Size.Small" Color="Color.Error" Class="status-dot" />
+                                            }
+                                            else
+                                            {
+                                                <MudIcon Icon="@Icons.Material.Filled.Circle" Size="Size.Small" Color="Color.Default" Class="status-dot" />
+                                            }
+                                        </MudStack>
+                                    </MudStack>
+
+                                    <MudStack Class="camera-actions" Spacing="0">
+                                        <MudButton Color="Color.Secondary"
+                                                   Variant="Variant.Text"
+                                                   Size="Size.Small"
+                                                   StartIcon="@Icons.Material.Filled.PlayCircle"
+                                                   Href="@camera.Url"
+                                                   Target="_blank"
+                                                   OnClick="async () => await LogToDiscord(camera.Url)">
+                                            Flux live
+                                        </MudButton>
+
+                                        <MudButton Color="Color.Primary"
+                                                   Variant="Variant.Text"
+                                                   Size="Size.Small"
+                                                   StartIcon="@Icons.Material.Filled.History"
+                                                   OnClick="() => NavigateToHistory(camera.Name)">
+                                            Historique
+                                        </MudButton>
+                                    </MudStack>
                                 </MudStack>
-
-                                
-                                <MudIconButton Icon="@Icons.Material.Filled.OpenInNew"
-                                               Color="Color.Secondary"
-                                               Variant="Variant.Filled"
-                                               Size="Size.Medium"
-                                               Href="@camera.Url"
-                                               Target="_blank"
-                                               OnClick="async () => await LogToDiscord(camera.Url)" />
-
-                                <MudIconButton Icon="@Icons.Material.Filled.History"
-                                               Color="Color.Primary"
-                                               Variant="Variant.Filled"
-                                               Size="Size.Medium"
-                                               OnClick="() => NavigateToHistory(camera.Name)" />
-                            </MudStack>
-                        </MudPaper>
-                    }
-                </MudStack>
+                            </MudPaper>
+                        }
+                    </MudStack>
+                }
 
                 @* Info banner *@
                 <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Dense="true" Class="mt-2">

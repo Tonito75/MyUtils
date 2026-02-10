@@ -1,0 +1,89 @@
+@page "/streams"
+@using BlazorApp.Models
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Options
+@attribute [Authorize]
+@inject IOptions<List<CameraConfig>> CamerasOptions
+@inject NavigationManager Navigation
+
+<PageTitle>Tous les flux</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="py-8">
+    <MudStack Spacing="4" AlignItems="AlignItems.Center">
+
+        @* Header *@
+        <MudStack AlignItems="AlignItems.Center" Spacing="1">
+            <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
+                <MudAvatar Color="Color.Primary" Variant="Variant.Filled" Size="Size.Large" Class="gradient-primary">
+                    <MudIcon Icon="@Icons.Material.Filled.GridView" />
+                </MudAvatar>
+                <MudText Typo="Typo.h5" Class="fw-bold">Tous les flux</MudText>
+            </MudStack>
+        </MudStack>
+
+        @* Bouton retour *@
+        <MudButton OnClick='() => Navigation.NavigateTo("/")'
+                   Variant="Variant.Outlined"
+                   Color="Color.Primary"
+                   Size="Size.Small"
+                   StartIcon="@Icons.Material.Filled.ArrowBack">
+            Retour
+        </MudButton>
+
+        @* Flux en mosaique *@
+        <div class="streams-grid">
+            @foreach (var camera in _cameras)
+            {
+                <MudPaper Class="pa-3 glass-card stream-card" Elevation="0">
+                    <MudStack Spacing="2">
+                        <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
+                            <MudIcon Icon="@Icons.Material.Filled.Videocam" Size="Size.Small" />
+                            <MudText Typo="Typo.subtitle1" Class="fw-bold">@camera.Name</MudText>
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">@(string.IsNullOrEmpty(camera.Group) ? "Autres" : camera.Group)</MudText>
+                        </MudStack>
+                        <iframe src="@camera.Url" class="stream-iframe" allowfullscreen></iframe>
+                    </MudStack>
+                </MudPaper>
+            }
+        </div>
+
+        @* Footer *@
+        <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mt-4">
+            © Tonito
+        </MudText>
+    </MudStack>
+</MudContainer>
+
+@code {
+    private List<CameraConfig> _cameras = new();
+
+    protected override void OnInitialized()
+    {
+        _cameras = CamerasOptions.Value ?? [];
+    }
+}
+
+<style>
+    .streams-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+        gap: 16px;
+        width: 100%;
+    }
+
+    .stream-card {
+        overflow: hidden;
+    }
+
+    .stream-iframe {
+        width: 100%;
+        aspect-ratio: 16 / 9;
+        border: none;
+        border-radius: 8px;
+        background: rgba(0, 0, 0, 0.3);
+    }
+
+    .group-divider {
+        border-color: rgba(255, 255, 255, 0.1) !important;
+    }
+</style>

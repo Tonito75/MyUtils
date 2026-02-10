@@ -40,3 +40,10 @@ services:
       context: .
       dockerfile: _docker/timelapsecreator.dockerfile
     image: tonito75/timelapsecreator:latest
+
+  siteportalcameras:
+    build:
+      context: .
+      dockerfile: _docker/portalcamera.dockerfile
+    image: tonito75/siteportalcameras:latest
+  

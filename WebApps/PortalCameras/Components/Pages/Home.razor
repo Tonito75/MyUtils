@@ -29,14 +29,23 @@
             <MudText Typo="Typo.subtitle1" Color="Color.Secondary">Les cameras</MudText>
         </MudStack>
 
-        @* Bouton logout *@
-        <MudButton Href="/logout"
-                   Variant="Variant.Outlined"
-                   Color="Color.Error"
-                   Size="Size.Small"
-                   StartIcon="@Icons.Material.Filled.Logout">
-            Deconnexion
-        </MudButton>
+        @* Boutons navigation *@
+        <MudStack Row Spacing="2">
+            <MudButton Href="/streams"
+                       Variant="Variant.Outlined"
+                       Color="Color.Primary"
+                       Size="Size.Small"
+                       StartIcon="@Icons.Material.Filled.GridView">
+                Tous les flux
+            </MudButton>
+            <MudButton Href="/logout"
+                       Variant="Variant.Outlined"
+                       Color="Color.Error"
+                       Size="Size.Small"
+                       StartIcon="@Icons.Material.Filled.Logout">
+                Deconnexion
+            </MudButton>
+        </MudStack>
 
         @* Card principale *@
         <MudPaper Class="pa-6 glass-card" Elevation="0" Style="width: 100%;">

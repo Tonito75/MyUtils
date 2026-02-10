@@ -52,45 +52,7 @@ body::before {
     box-shadow: 0 8px 24px rgba(59, 130, 246, 0.3);
 }
 
-.gradient-button {
-    background: linear-gradient(135deg, #3b82f6, #8b5cf6) !important;
-    transition: all 0.3s ease;
-}
 
-.gradient-button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(59, 130, 246, 0.4);
-}
-
-.gradient-text {
-    background: linear-gradient(135deg, #fff, #94a3b8);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-}
-
-/* ==================== Group Divider ==================== */
-.group-divider {
-    border-color: rgba(255, 255, 255, 0.1) !important;
-}
-
-/* ==================== Camera Actions ==================== */
-.camera-actions {
-    flex-direction: row;
-}
-
-@media (max-width: 500px) {
-    .camera-actions {
-        flex-direction: column;
-    }
-}
-
-/* ==================== Status Dot ==================== */
-.status-dot {
-    font-size: 10px !important;
-    width: 10px !important;
-    height: 10px !important;
-}
 
 /* ==================== Utilities ==================== */
 .fw-bold {

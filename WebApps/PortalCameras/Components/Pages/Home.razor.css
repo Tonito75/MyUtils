@@ -1,0 +1,22 @@
+/* ==================== Group Divider ==================== */
+::deep .group-divider {
+    border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* ==================== Camera Actions ==================== */
+::deep .camera-actions {
+    flex-direction: row;
+}
+
+@media (max-width: 500px) {
+    ::deep .camera-actions {
+        flex-direction: column;
+    }
+}
+
+/* ==================== Status Dot ==================== */
+::deep .status-dot {
+    font-size: 10px !important;
+    width: 10px !important;
+    height: 10px !important;
+}

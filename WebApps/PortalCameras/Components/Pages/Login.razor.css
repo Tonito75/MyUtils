@@ -1,0 +1,17 @@
+/* ==================== Gradients ==================== */
+::deep .gradient-button {
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6) !important;
+    transition: all 0.3s ease;
+}
+
+::deep .gradient-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(59, 130, 246, 0.4);
+}
+
+::deep .gradient-text {
+    background: linear-gradient(135deg, #fff, #94a3b8);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}

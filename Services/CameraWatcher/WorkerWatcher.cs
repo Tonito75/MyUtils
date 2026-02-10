@@ -96,7 +96,7 @@ public class WorkerWatcher : DiscordWorker<CameraWatcherOptions>
                 }
 
                 // Last file in the ftp list is older than the last sent file ; nothing has to be done. 
-                if(_lastSentFileCreationDate != null && lastFtpFile.Created < _lastSentFileCreationDate)
+                if(_lastSentFileCreationDate != null && lastFtpFile.Created <= _lastSentFileCreationDate.Value)
                 {
                     return;
                 }

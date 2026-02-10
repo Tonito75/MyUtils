@@ -41,7 +41,7 @@
                             <MudText Typo="Typo.subtitle1" Class="fw-bold">@camera.Name</MudText>
                             <MudText Typo="Typo.caption" Color="Color.Secondary">@(string.IsNullOrEmpty(camera.Group) ? "Autres" : camera.Group)</MudText>
                         </MudStack>
-                        <iframe src="@camera.Url" class="stream-iframe" allowfullscreen></iframe>
+                        <iframe src="@(camera.Url + "_low")" class="stream-iframe" allowfullscreen></iframe>
                     </MudStack>
                 </MudPaper>
             }

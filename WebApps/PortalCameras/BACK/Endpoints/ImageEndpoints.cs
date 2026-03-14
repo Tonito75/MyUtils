@@ -9,7 +9,17 @@ public static class ImageEndpoints
             var baseFolder = config["BaseHistoryFolder"];
             if (string.IsNullOrEmpty(baseFolder)) return Results.NotFound();
 
-            var fullPath = Path.Combine(baseFolder, path);
+            // Résoudre les chemins en absolu pour éviter le path traversal
+            var resolvedBase = Path.GetFullPath(baseFolder);
+            var fullPath = Path.GetFullPath(Path.Combine(resolvedBase, path));
+
+            // Vérifier que le chemin résolu est bien sous baseFolder
+            if (!fullPath.StartsWith(resolvedBase + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase)
+                && !fullPath.Equals(resolvedBase, StringComparison.OrdinalIgnoreCase))
+            {
+                return Results.Forbid();
+            }
+
             if (!File.Exists(fullPath)) return Results.NotFound();
 
             var contentType = Path.GetExtension(fullPath).ToLower() switch

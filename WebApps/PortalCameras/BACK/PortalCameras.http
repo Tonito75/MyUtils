@@ -1,0 +1,6 @@
+@PortalCameras_HostAddress = http://localhost:5158
+
+GET {{PortalCameras_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

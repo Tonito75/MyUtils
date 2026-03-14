@@ -22,7 +22,8 @@ try
     builder.Host.UseSerilog();
 
     // CORS
-    var allowedOrigins = builder.Configuration["AllowedOrigins"] ?? "http://localhost:5173";
+    var allowedOriginsRaw = builder.Configuration["AllowedOrigins"] ?? "http://localhost:5173";
+    var allowedOrigins = allowedOriginsRaw.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
     builder.Services.AddCors(options =>
     {
         options.AddDefaultPolicy(policy =>

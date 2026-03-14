@@ -108,9 +108,9 @@ export default function CameraHistoryPage() {
                 gap: 2,
               }}
             >
-              {images.map((img, i) => (
+              {images.map((img) => (
                 <Paper
-                  key={i}
+                  key={img.url}
                   elevation={2}
                   sx={{
                     p: 2,

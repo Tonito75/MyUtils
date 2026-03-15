@@ -61,6 +61,7 @@ public class BotService(
         }
 
         var allColors = new List<string>();
+        var successfulAnalyses = 0;
 
         foreach (var attachment in imageAttachments)
         {
@@ -90,6 +91,7 @@ public class BotService(
             try
             {
                 colors = await visionService.AnalyzeAsync(bytes, mediaType);
+                successfulAnalyses++;
             }
             catch (Exception ex)
             {
@@ -101,7 +103,9 @@ public class BotService(
             allColors.AddRange(colors);
         }
 
-        await PersistScansAsync(allColors, message.Author);
+        if (successfulAnalyses == 0) return;
+
+        await PersistScansAsync(allColors, userMessage.Author);
 
         var reply = allColors.Count == 0
             ? "Aucune canette Monster détectée."

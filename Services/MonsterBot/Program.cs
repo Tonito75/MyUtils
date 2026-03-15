@@ -10,9 +10,6 @@ using MonsterBot.Services.Vision;
 var host = Host.CreateDefaultBuilder(args)
     .ConfigureServices((context, services) =>
     {
-        var appSettings = context.Configuration.Get<AppSettings>()
-            ?? throw new InvalidOperationException("Invalid appsettings.json");
-
         services.Configure<AppSettings>(context.Configuration);
 
         services.AddHttpClient();
@@ -22,7 +19,7 @@ var host = Host.CreateDefaultBuilder(args)
                 context.Configuration["ConnectionString:DefaultConnection"]
                 ?? throw new InvalidOperationException("Connection string not found")));
 
-        var provider = appSettings.Ai.Provider.ToLowerInvariant();
+        var provider = (context.Configuration["Ai:Provider"] ?? "mistral").ToLowerInvariant();
         if (provider == "claude")
             services.AddSingleton<IVisionService, ClaudeVisionService>();
         else

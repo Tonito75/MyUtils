@@ -22,7 +22,6 @@ public class WorkerWatcher : DiscordWorker<CameraWatcherOptions>
 
     private bool _firstExec = true;
     private string _lastSentFileName = string.Empty;
-    private DateTime? _lastSentFileCreationDate = null;
     private readonly string _apiMeteoUrl = string.Empty;
 
     private readonly int _apiMeteoErrorProtections = 15;
@@ -83,7 +82,7 @@ public class WorkerWatcher : DiscordWorker<CameraWatcherOptions>
         {
             var lastFtpFile = result
                 .Where(f => f.Name.Split(".").LastOrDefault() == "jpg")
-                .OrderBy(f => f.Created)
+                .OrderBy(f => f.Name)
                 .LastOrDefault();
 
             if (lastFtpFile != null && lastFtpFile.Name != _lastSentFileName)
@@ -95,13 +94,12 @@ public class WorkerWatcher : DiscordWorker<CameraWatcherOptions>
                     return;
                 }
 
-                // Last file in the ftp list is older than the last sent file ; nothing has to be done. 
-                if(_lastSentFileCreationDate != null && lastFtpFile.Created <= _lastSentFileCreationDate.Value)
+                // Skip if this file is older than (or same name as) the last sent file.
+                // Uses name comparison since camera filenames embed a timestamp and FTP Created timestamps are unreliable.
+                if (string.Compare(lastFtpFile.Name, _lastSentFileName, StringComparison.OrdinalIgnoreCase) <= 0)
                 {
                     return;
                 }
-
-                _lastSentFileCreationDate = lastFtpFile.Created;
 
                 (success, error, (var isDay, var isRaining)) = await GetMeteoInfos(watcherConfiguration.ApiMeteoUrl);
                 if (!success)

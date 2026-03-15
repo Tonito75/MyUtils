@@ -8,10 +8,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading.Channels;
 
 namespace DiscordBot
 {
@@ -112,7 +108,7 @@ namespace DiscordBot
 
         private static async Task SendAlertAsync(ISocketMessageChannel channel, LanDevice device, ulong alertRoleId)
         {
-            await channel.SendMessageAsync($"{Emojis.Warn} <@&{alertRoleId}> New device connected : {device}");
+            await channel.SendMessageAsync($"{Emojis.Warn} <@&{alertRoleId}> New device connected : {device.ToStringOnConnect()}");
         }
 
         private static async Task SendUpdateAsync(ISocketMessageChannel channel, LanDevice newDevice, LanDevice oldDevice)

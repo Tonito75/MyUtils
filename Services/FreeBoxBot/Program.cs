@@ -10,7 +10,7 @@ using Microsoft.Extensions.Configuration;
 
 var host = Host.CreateDefaultBuilder(args)
     .UseWindowsService()
-    .UseSerilogWithFileRotation("DiscordBot")
+    .UseSerilogWithFileRotation("FreeBoxBot")
     .ConfigureServices((context, services) =>
     {
         var appSettings = context.Configuration.Get<AppSettings>()

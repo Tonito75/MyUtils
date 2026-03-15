@@ -9,6 +9,14 @@
 
   <ItemGroup>
     <Content Remove="appsettings.json" />
+    <Compile Remove="BACK\**" />
+    <Compile Remove="FRONT\**" />
+    <Content Remove="BACK\**" />
+    <Content Remove="FRONT\**" />
+    <EmbeddedResource Remove="BACK\**" />
+    <EmbeddedResource Remove="FRONT\**" />
+    <None Remove="BACK\**" />
+    <None Remove="FRONT\**" />
   </ItemGroup>
 
   <ItemGroup>

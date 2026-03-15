@@ -29,7 +29,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Services", "Services", "{53
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CameraWatcher", "Services\CameraWatcher\CameraWatcher.csproj", "{E86B9BF5-D0E3-816E-7FE2-5F7DD4BF7E21}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DiscordBot", "Services\DiscordBot\DiscordBot.csproj", "{D4FAB5CD-1273-5D9D-8F52-BA1EC4793E1F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FreeBoxBot", "Services\FreeBoxBot\FreeBoxBot.csproj", "{D4FAB5CD-1273-5D9D-8F52-BA1EC4793E1F}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MinecraftLogsToDiscord", "Services\MinecraftLogsToDiscord\MinecraftLogsToDiscord.csproj", "{26B86401-AB20-D1C2-2F0C-458743FB4BF3}"
 EndProject

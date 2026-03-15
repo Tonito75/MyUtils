@@ -1,27 +1,13 @@
 ﻿using Common.Classes;
-using Domain.FreeBox.Device;
-using FluentFTP.Helpers;
-using Microsoft.EntityFrameworkCore.SqlServer.Query.Internal;
-using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Net;
-using System.Net.Mail;
-using System.Numerics;
 using System.Reflection;
-using System.Runtime.CompilerServices;
-using System.Security.AccessControl;
 using System.Text;
 
 namespace DiscordBot.Extensions;
 
 public static class LanDeviceExtensions
 {
-    public static PropertyInfo[] GetFields(this PropertyInfo[] properties)
-    {
-        return properties.Where(p => p.Name == "OriginalName" || p.Name == "MacAddress" || p.Name == "IpAddress").ToArray();
-    }
-
     public class Grid<T> where T : class
     {
         public string[,] Mat { get; private set; }

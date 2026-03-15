@@ -42,17 +42,12 @@ public class BotService : IHostedService
 
         guildCommand.WithName("list");
         guildCommand.WithDescription("Simple list of all devices known by the freebox.");
-        guildCommand.AddOption("verbose", ApplicationCommandOptionType.String, "aa");
-
-        var globalCommand = new SlashCommandBuilder();
-        globalCommand.WithName("list");
-        globalCommand.WithDescription("Simple list of all devices known by the freebox.");
-        globalCommand.AddOption("verbose", ApplicationCommandOptionType.String, "aa");
+        guildCommand.AddOption("verbose", ApplicationCommandOptionType.Boolean, "Afficher les détails complets");
+        guildCommand.AddOption("connected", ApplicationCommandOptionType.Boolean, "Afficher uniquement les appareils connectés");
 
         try
         {
             await guild.CreateApplicationCommandAsync(guildCommand.Build());
-            await _client.CreateGlobalApplicationCommandAsync(globalCommand.Build());
         }
         catch (HttpException exception)
         {
@@ -73,34 +68,40 @@ public class BotService : IHostedService
 
     private async Task HandleListCommand(SocketSlashCommand command)
     {
-        var param = command.Data.Options.FirstOrDefault()?.Value;
+        var verbose = command.Data.Options.FirstOrDefault(o => o.Name == "verbose")?.Value as bool? ?? false;
+        var connectedOnly = command.Data.Options.FirstOrDefault(o => o.Name == "connected")?.Value as bool? ?? false;
+
         await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
-        var devices = await dbContext.LanDevices.OrderBy(d => d.IsConnected).OrderBy(d => d.LastConnected).ToListAsync();
+        var query = dbContext.LanDevices.AsQueryable();
+
+        if (connectedOnly)
+            query = query.Where(d => d.IsConnected);
+
+        var devices = await query.ToListAsync();
 
         var nbDevicesByChunk = 10;
 
         var firstChunk = devices.Skip(0).Take(nbDevicesByChunk).ToList();
 
-        await command.RespondAsync(param != null ? firstChunk.FormatVerboseList() : firstChunk.FormatSimpleList());
+        await command.RespondAsync(verbose ? firstChunk.FormatVerboseList() : firstChunk.FormatSimpleList());
 
         var index = nbDevicesByChunk;
-
         var nextChunk = new List<LanDevice>();
 
-        while(index < devices.Count)
+        while (index < devices.Count)
         {
-            if(nextChunk.Count == nbDevicesByChunk)
+            if (nextChunk.Count == nbDevicesByChunk)
             {
-                await command.FollowupAsync(param != null ? nextChunk.FormatVerboseList() : nextChunk.FormatSimpleList());
+                await command.FollowupAsync(verbose ? nextChunk.FormatVerboseList() : nextChunk.FormatSimpleList());
                 nextChunk.Clear();
             }
             nextChunk.Add(devices[index]);
             index++;
         }
 
-        if(nextChunk != null &&  nextChunk.Count > 0)
+        if (nextChunk.Count > 0)
         {
-            await command.FollowupAsync(param != null ? nextChunk.FormatVerboseList() : nextChunk.FormatSimpleList());
+            await command.FollowupAsync(verbose ? nextChunk.FormatVerboseList() : nextChunk.FormatSimpleList());
         }
     }
 

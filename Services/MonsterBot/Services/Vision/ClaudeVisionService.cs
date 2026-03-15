@@ -19,8 +19,6 @@ public class ClaudeVisionService(
 
     public async Task<List<string>> AnalyzeAsync(byte[] imageBytes, string mediaType)
     {
-        var client = _client;
-
         var base64 = Convert.ToBase64String(imageBytes);
 
         var messages = new List<Message>
@@ -53,7 +51,7 @@ public class ClaudeVisionService(
 
         try
         {
-            var response = await client.Messages.GetClaudeMessageAsync(request);
+            var response = await _client.Messages.GetClaudeMessageAsync(request);
             var text = response.Content.OfType<TextContent>().FirstOrDefault()?.Text
                        ?? response.FirstMessage?.Text
                        ?? string.Empty;

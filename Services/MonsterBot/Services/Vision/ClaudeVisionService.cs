@@ -11,13 +11,19 @@ public class ClaudeVisionService(
     ILogger<ClaudeVisionService> logger) : IVisionService
 {
     private const string Prompt =
-        "List the colors of Monster Energy drink cans visible in this image. " +
-        "Return ONLY a JSON array of color strings in French (e.g. [\"Verte\", \"Noire\"]). " +
-        "If no Monster can is visible, return an empty array [].";
+        "You are an expert in Monster Energy drink products. Carefully examine this image. " +
+        "Identify the exact Monster Energy product visible. " +
+        "If the text on the can is hard to read, use the can's colors, design, and visual cues to determine which Monster product it is — every Monster variant has a distinctive color scheme. " +
+        "\n\nColor reference dictionary — use this to identify the product when unsure:\n" +
+        "- White can → Monster Energy Ultra White\n" +
+        "- Pink can with a slightly blue side and a slightly red side → Monster Energy Ultra Fantasy\n" +
+        "\n" +
+        "Return ONLY the exact product name as a plain string (e.g. \"Monster Energy Ultra White\"). " +
+        "If you are certain there is no Monster Energy product in the image, return an empty string.";
 
     private readonly AnthropicClient _client = new(options.Value.Ai.ClaudeApiKey);
 
-    public async Task<List<string>> AnalyzeAsync(byte[] imageBytes, string mediaType)
+    public async Task<string?> AnalyzeAsync(byte[] imageBytes, string mediaType)
     {
         var base64 = Convert.ToBase64String(imageBytes);
 

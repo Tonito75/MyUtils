@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using MonsterBot.Services;
 using MonsterBot.Services.Vision;
 
 namespace MonsterBot;
@@ -25,6 +26,8 @@ public class BotService(
     {
         client.Log += LogAsync;
         client.MessageReceived += OnMessageReceivedAsync;
+        client.Ready += OnReadyAsync;
+        client.SlashCommandExecuted += OnSlashCommandAsync;
 
         await client.LoginAsync(TokenType.Bot, options.Value.Discord.Token);
         await client.StartAsync();
@@ -34,7 +37,111 @@ public class BotService(
     {
         client.Log -= LogAsync;
         client.MessageReceived -= OnMessageReceivedAsync;
+        client.Ready -= OnReadyAsync;
+        client.SlashCommandExecuted -= OnSlashCommandAsync;
         await client.StopAsync();
+    }
+
+    private async Task OnReadyAsync()
+    {
+        try
+        {
+            var guild = client.GetGuild(options.Value.Discord.ServerGuildId);
+            if (guild is null)
+            {
+                logger.LogError("Guild {GuildId} introuvable.", options.Value.Discord.ServerGuildId);
+                return;
+            }
+
+            var unleash = new SlashCommandBuilder()
+                .WithName("unleash")
+                .WithDescription("Top 2 des Monsters préférés par user")
+                .Build();
+
+            var top = new SlashCommandBuilder()
+                .WithName("top")
+                .WithDescription("Les Monsters les plus bus au total")
+                .Build();
+
+            await guild.CreateApplicationCommandAsync(unleash);
+            await guild.CreateApplicationCommandAsync(top);
+
+            logger.LogInformation("Slash commands enregistrées sur le serveur {GuildId}.", guild.Id);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Échec de l'enregistrement des slash commands.");
+        }
+    }
+
+    private async Task OnSlashCommandAsync(SocketSlashCommand command)
+    {
+        await command.DeferAsync();
+
+        try
+        {
+            var text = command.CommandName switch
+            {
+                "unleash" => await BuildListAsync(),
+                "top"     => await BuildTopAsync(),
+                _         => "Commande inconnue."
+            };
+
+            await command.FollowupAsync(text);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Slash command /{Command} failed", command.CommandName);
+            await command.FollowupAsync($"Erreur lors de l'exécution de la commande : {ex.Message}");
+        }
+    }
+
+    private async Task<string> BuildListAsync()
+    {
+        await using var db = await dbContextFactory.CreateDbContextAsync();
+
+        var byUser = await db.MonsterScans
+            .GroupBy(s => s.UtilisateurDiscord)
+            .Select(g => new
+            {
+                User = g.Key,
+                Top = g.GroupBy(s => s.Nom)
+                        .Select(ng => new { Nom = ng.Key, Count = ng.Count() })
+                        .OrderByDescending(x => x.Count)
+                        .Take(2)
+                        .ToList()
+            })
+            .OrderBy(x => x.User)
+            .ToListAsync();
+
+        if (byUser.Count == 0)
+            return "Aucun scan enregistré.";
+
+        var lines = byUser.Select(u =>
+        {
+            var favorites = string.Join(", ", u.Top.Select(t => $"**{t.Nom}** ({t.Count}x)"));
+            return $"**{u.User}** → {favorites}";
+        });
+
+        return string.Join("\n", lines);
+    }
+
+    private async Task<string> BuildTopAsync()
+    {
+        await using var db = await dbContextFactory.CreateDbContextAsync();
+
+        var top = await db.MonsterScans
+            .GroupBy(s => s.Nom)
+            .Select(g => new { Nom = g.Key, Count = g.Count() })
+            .OrderByDescending(x => x.Count)
+            .Take(10)
+            .ToListAsync();
+
+        if (top.Count == 0)
+            return "Aucun scan enregistré.";
+
+        var lines = top.Select((t, i) => $"{i + 1}. **{t.Nom}** — {t.Count}x");
+        return string.Join("\n", lines);
     }
 
     private Task LogAsync(LogMessage message)
@@ -54,14 +161,17 @@ public class BotService(
             .ToList();
 
         if (imageAttachments.Count == 0)
+            return;
+
+        if (imageAttachments.Count > 1)
         {
             try { await userMessage.DeleteAsync(); }
-            catch (Exception ex) { logger.LogWarning(ex, "Could not delete non-image message {Id}", userMessage.Id); }
+            catch (Exception ex) { logger.LogWarning(ex, "Could not delete multi-image message {Id}", userMessage.Id); }
+            await userMessage.Channel.SendMessageAsync("⚠️ Attention à ne pas unleash trop à la fois.");
             return;
         }
 
-        var allColors = new List<string>();
-        var successfulAnalyses = 0;
+        var detectedNames = new List<string>();
 
         foreach (var attachment in imageAttachments)
         {
@@ -83,52 +193,54 @@ public class BotService(
             catch (Exception ex)
             {
                 logger.LogError(ex, "Failed to download image {Url}", attachment.Url);
-                await userMessage.Channel.SendMessageAsync("Erreur lors du téléchargement de l'image.");
+                await userMessage.Channel.SendMessageAsync($"Erreur lors du téléchargement de l'image : {ex.Message}");
                 continue;
             }
 
-            List<string> colors;
+            (bytes, mediaType) = ImageCompressor.Compress(bytes);
+            logger.LogInformation("Image compressée : {Size} bytes ({MediaType})", bytes.Length, mediaType);
+
+            string? name;
             try
             {
-                colors = await visionService.AnalyzeAsync(bytes, mediaType);
-                successfulAnalyses++;
+                name = await visionService.AnalyzeAsync(bytes, mediaType);
             }
             catch (Exception ex)
             {
                 logger.LogError(ex, "Vision API failed for attachment {Filename}", attachment.Filename);
-                await userMessage.Channel.SendMessageAsync("Erreur lors de l'analyse de l'image.");
+                await userMessage.Channel.SendMessageAsync($"Erreur lors de l'analyse de l'image : {ex.Message}");
                 continue;
             }
 
-            allColors.AddRange(colors);
+            if (!string.IsNullOrWhiteSpace(name))
+                detectedNames.Add(name);
         }
 
-        if (successfulAnalyses == 0) return;
+        if (detectedNames.Count == 0)
+        {
+            await userMessage.Channel.SendMessageAsync("Aucune canette Monster détectée.");
+            return;
+        }
 
-        await PersistScansAsync(allColors, userMessage.Author);
+        await PersistScansAsync(detectedNames, userMessage.Author);
 
-        var reply = allColors.Count == 0
-            ? "Aucune canette Monster détectée."
-            : string.Join("\n", allColors.Select(c => $"• {c}"));
-
+        var reply = string.Join("\n", detectedNames.Select(n => $"**{userMessage.Author.Username}** just unleashed the beast with **{n}**"));
         await userMessage.Channel.SendMessageAsync(reply);
     }
 
-    private async Task PersistScansAsync(List<string> colors, IUser author)
+    private async Task PersistScansAsync(List<string> names, IUser author)
     {
-        if (colors.Count == 0) return;
-
         var username = author.Discriminator != "0000" && !string.IsNullOrEmpty(author.Discriminator)
             ? $"{author.Username}#{author.Discriminator}"
             : author.Username;
 
         await using var db = await dbContextFactory.CreateDbContextAsync();
 
-        foreach (var color in colors)
+        foreach (var name in names)
         {
             db.MonsterScans.Add(new MonsterScan
             {
-                Couleur = color,
+                Nom = name,
                 UtilisateurDiscord = username,
                 Date = DateTime.UtcNow
             });

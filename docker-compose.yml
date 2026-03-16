@@ -46,4 +46,10 @@ services:
       context: .
       dockerfile: _docker/portalcamera.dockerfile
     image: tonito75/siteportalcameras:latest
-  
+
+  monsterbot:
+    build:
+      context: .
+      dockerfile: _docker/monsterbot.dockerfile
+    image: tonito75/monsterbot:latest
+

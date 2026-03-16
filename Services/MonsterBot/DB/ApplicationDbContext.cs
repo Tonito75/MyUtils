@@ -9,7 +9,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         modelBuilder.Entity<MonsterScan>(entity =>
         {
             entity.HasKey(e => e.Id);
-            entity.Property(e => e.Couleur).HasMaxLength(100).IsRequired();
+            entity.Property(e => e.Nom).HasMaxLength(200).IsRequired();
             entity.Property(e => e.UtilisateurDiscord).HasMaxLength(200).IsRequired();
             entity.Property(e => e.Date).HasColumnType("datetime2");
         });

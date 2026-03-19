@@ -1,6 +1,6 @@
 namespace MonsterBot;
 
-public record DiscordSettings(string Token, ulong ChannelId, ulong ServerGuildId);
+public record DiscordSettings(string Token, ulong[] ChannelIds, ulong ServerGuildId);
 public record AiSettings(string Provider, string MistralApiKey, string ClaudeApiKey);
 public record DbSettings(string DefaultConnection);
 

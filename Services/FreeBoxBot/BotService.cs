@@ -31,7 +31,7 @@ public class BotService : IHostedService
 
         _dbContextFactory = dbContextFactory;
 
-        client.SlashCommandExecuted += SlashCommandHandler;
+        client.SlashCommandExecuted += command => { _ = SlashCommandHandler(command); return Task.CompletedTask; };
     }
 
     public async Task ClientReadyAsync()
@@ -42,8 +42,7 @@ public class BotService : IHostedService
 
         guildCommand.WithName("list");
         guildCommand.WithDescription("Simple list of all devices known by the freebox.");
-        guildCommand.AddOption("verbose", ApplicationCommandOptionType.Boolean, "Afficher les détails complets");
-        guildCommand.AddOption("connected", ApplicationCommandOptionType.Boolean, "Afficher uniquement les appareils connectés");
+        guildCommand.AddOption("flags", ApplicationCommandOptionType.String, "Flags : v (verbose), c (connected only), vc (les deux)", isRequired: false);
 
         try
         {
@@ -58,18 +57,27 @@ public class BotService : IHostedService
 
     private async Task SlashCommandHandler(SocketSlashCommand command)
     {
-        switch (command.Data.Name)
+        try
         {
-            case "list":
-                await HandleListCommand(command);
-                break;
+            switch (command.Data.Name)
+            {
+                case "list":
+                    await HandleListCommand(command);
+                    break;
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[SlashCommand ERROR] {command.Data.Name}: {ex}");
+            try { await command.RespondAsync($"Erreur : {ex.Message}", ephemeral: true); } catch { }
         }
     }
 
     private async Task HandleListCommand(SocketSlashCommand command)
     {
-        var verbose = command.Data.Options.FirstOrDefault(o => o.Name == "verbose")?.Value as bool? ?? false;
-        var connectedOnly = command.Data.Options.FirstOrDefault(o => o.Name == "connected")?.Value as bool? ?? false;
+        var flags = (command.Data.Options ?? []).FirstOrDefault(o => o.Name == "flags")?.Value as string ?? "";
+        var verbose = flags.Contains('v');
+        var connectedOnly = flags.Contains('c');
 
         await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
         var query = dbContext.LanDevices.AsQueryable();

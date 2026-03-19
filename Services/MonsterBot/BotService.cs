@@ -20,7 +20,7 @@ public class BotService(
     private static readonly HashSet<string> ImageExtensions =
         new(StringComparer.OrdinalIgnoreCase) { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
 
-    private readonly ulong _channelId = options.Value.Discord.ChannelId;
+    private readonly HashSet<ulong> _channelIds = new(options.Value.Discord.ChannelIds);
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
@@ -31,6 +31,42 @@ public class BotService(
 
         await client.LoginAsync(TokenType.Bot, options.Value.Discord.Token);
         await client.StartAsync();
+
+        _ = RunReminderLoopAsync(cancellationToken);
+    }
+
+    private async Task RunReminderLoopAsync(CancellationToken ct)
+    {
+        using var timer = new PeriodicTimer(TimeSpan.FromHours(24));
+        while (await timer.WaitForNextTickAsync(ct))
+        {
+            try { await CheckInactiveUsersAsync(); }
+            catch (Exception ex) { logger.LogError(ex, "Erreur lors du check d'inactivité."); }
+        }
+    }
+
+    private async Task CheckInactiveUsersAsync()
+    {
+        var channelId = _channelIds.FirstOrDefault();
+        if (channelId == 0 || client.GetChannel(channelId) is not IMessageChannel channel)
+            return;
+
+        await using var db = await dbContextFactory.CreateDbContextAsync();
+
+        var threshold = DateTime.UtcNow.AddDays(-3);
+
+        var inactiveUsers = await db.MonsterScans
+            .GroupBy(s => new { s.DiscordUserId, s.UtilisateurDiscord })
+            .Select(g => new { g.Key.DiscordUserId, g.Key.UtilisateurDiscord, LastScan = g.Max(s => s.Date) })
+            .Where(u => u.LastScan < threshold)
+            .ToListAsync();
+
+        foreach (var user in inactiveUsers)
+        {
+            var mention = user.DiscordUserId != 0 ? $"<@{user.DiscordUserId}>" : $"**{user.UtilisateurDiscord}**";
+            await channel.SendMessageAsync($"{mention}, you didn't unleash the beast in the last 3 days. Are you ok bro? 🥤");
+            logger.LogInformation("Reminder envoyé à {User}.", user.UtilisateurDiscord);
+        }
     }
 
     public async Task StopAsync(CancellationToken cancellationToken)
@@ -63,8 +99,20 @@ public class BotService(
                 .WithDescription("Les Monsters les plus bus au total")
                 .Build();
 
+            var cancel = new SlashCommandBuilder()
+                .WithName("cancel")
+                .WithDescription("Supprime le dernier scan enregistré")
+                .Build();
+
+            var help = new SlashCommandBuilder()
+                .WithName("help")
+                .WithDescription("Affiche les commandes disponibles")
+                .Build();
+
             await guild.CreateApplicationCommandAsync(unleash);
             await guild.CreateApplicationCommandAsync(top);
+            await guild.CreateApplicationCommandAsync(cancel);
+            await guild.CreateApplicationCommandAsync(help);
 
             logger.LogInformation("Slash commands enregistrées sur le serveur {GuildId}.", guild.Id);
         }
@@ -84,6 +132,8 @@ public class BotService(
             {
                 "unleash" => await BuildListAsync(),
                 "top"     => await BuildTopAsync(),
+                "cancel"  => await CancelLastAsync(),
+                "help"    => BuildHelp(),
                 _         => "Commande inconnue."
             };
 
@@ -94,6 +144,32 @@ public class BotService(
             logger.LogError(ex, "Slash command /{Command} failed", command.CommandName);
             await command.FollowupAsync($"Erreur lors de l'exécution de la commande : {ex.Message}");
         }
+    }
+
+    private static string BuildHelp() =>
+        """
+        🥤 **MonsterBot**
+        • Envoie une photo de canette → le bot l'identifie et l'enregistre
+        `/top` — classement global des Monsters les plus bus
+        `/unleash` — top 2 de chaque user
+        `/cancel` — annule le dernier scan
+        """;
+
+    private async Task<string> CancelLastAsync()
+    {
+        await using var db = await dbContextFactory.CreateDbContextAsync();
+
+        var last = await db.MonsterScans
+            .OrderByDescending(s => s.Id)
+            .FirstOrDefaultAsync();
+
+        if (last is null)
+            return "Aucun scan à annuler.";
+
+        db.MonsterScans.Remove(last);
+        await db.SaveChangesAsync();
+
+        return $"❌ Dernier scan supprimé : **{last.Nom}** de **{last.UtilisateurDiscord}** ({last.Date:dd/MM/yyyy HH:mm})";
     }
 
     private async Task<string> BuildListAsync()
@@ -119,7 +195,11 @@ public class BotService(
 
         var lines = byUser.Select(u =>
         {
-            var favorites = string.Join(", ", u.Top.Select(t => $"**{t.Nom}** ({t.Count}x)"));
+            var favorites = string.Join(", ", u.Top.Select(t =>
+            {
+                var emoji = MonsterCatalog.Resolve(t.Nom)?.Emoji ?? "🟢";
+                return $"{emoji} **{t.Nom}** ({t.Count}x)";
+            }));
             return $"**{u.User}** → {favorites}";
         });
 
@@ -140,7 +220,11 @@ public class BotService(
         if (top.Count == 0)
             return "Aucun scan enregistré.";
 
-        var lines = top.Select((t, i) => $"{i + 1}. **{t.Nom}** — {t.Count}x");
+        var lines = top.Select((t, i) =>
+        {
+            var emoji = MonsterCatalog.Resolve(t.Nom)?.Emoji ?? "🟢";
+            return $"{i + 1}. {emoji} **{t.Nom}** — {t.Count}x";
+        });
         return string.Join("\n", lines);
     }
 
@@ -153,7 +237,7 @@ public class BotService(
     private async Task OnMessageReceivedAsync(SocketMessage message)
     {
         if (message.Author.IsBot) return;
-        if (message.Channel.Id != _channelId) return;
+        if (!_channelIds.Contains(message.Channel.Id)) return;
         if (message is not SocketUserMessage userMessage) return;
 
         var imageAttachments = userMessage.Attachments
@@ -200,10 +284,10 @@ public class BotService(
             (bytes, mediaType) = ImageCompressor.Compress(bytes);
             logger.LogInformation("Image compressée : {Size} bytes ({MediaType})", bytes.Length, mediaType);
 
-            string? name;
+            string? rawName;
             try
             {
-                name = await visionService.AnalyzeAsync(bytes, mediaType);
+                rawName = await visionService.AnalyzeAsync(bytes, mediaType);
             }
             catch (Exception ex)
             {
@@ -212,8 +296,16 @@ public class BotService(
                 continue;
             }
 
-            if (!string.IsNullOrWhiteSpace(name))
-                detectedNames.Add(name);
+            var entry = MonsterCatalog.Resolve(rawName);
+            if (entry is not null)
+            {
+                logger.LogInformation("Monster identifié : {Raw} → {Canonical}", rawName, entry.CanonicalName);
+                detectedNames.Add($"{entry.Emoji} {entry.CanonicalName}");
+            }
+            else
+            {
+                logger.LogInformation("Aucune correspondance dans le catalogue pour : {Raw}", rawName);
+            }
         }
 
         if (detectedNames.Count == 0)
@@ -238,10 +330,13 @@ public class BotService(
 
         foreach (var name in names)
         {
+            // Retire l'emoji (format "🟢 Monster Ultra Paradise") avant de persister
+            var cleanName = name.Contains(' ') ? name[(name.IndexOf(' ') + 1)..] : name;
             db.MonsterScans.Add(new MonsterScan
             {
-                Nom = name,
+                Nom = cleanName,
                 UtilisateurDiscord = username,
+                DiscordUserId = author.Id,
                 Date = DateTime.UtcNow
             });
         }

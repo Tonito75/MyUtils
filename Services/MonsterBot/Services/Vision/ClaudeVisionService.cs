@@ -11,15 +11,16 @@ public class ClaudeVisionService(
     ILogger<ClaudeVisionService> logger) : IVisionService
 {
     private const string Prompt =
-        "You are an expert in Monster Energy drink products. Carefully examine this image. " +
-        "Identify the exact Monster Energy product visible. " +
-        "If the text on the can is hard to read, use the can's colors, design, and visual cues to determine which Monster product it is — every Monster variant has a distinctive color scheme. " +
-        "\n\nColor reference dictionary — use this to identify the product when unsure:\n" +
-        "- White can → Monster Energy Ultra White\n" +
-        "- Pink can with a slightly blue side and a slightly red side → Monster Energy Ultra Fantasy\n" +
+        "You are a Monster Energy can identifier. Your output is always one of two things:\n" +
+        "1. The exact product name (e.g. Monster Energy Ultra White)\n" +
+        "2. An empty string\n" +
+        "Nothing else. Ever. No explanation. No apology. No sentence. Just the name or nothing.\n" +
         "\n" +
-        "Return ONLY the exact product name as a plain string (e.g. \"Monster Energy Ultra White\"). " +
-        "If you are certain there is no Monster Energy product in the image, return an empty string.";
+        "To identify the product, use the text on the can first. If unreadable, use the color:\n" +
+        "- White can → Monster Energy Ultra White\n" +
+        "- Pink can with slightly blue on one side and slightly red on the other → Monster Energy Ultra Fantasy\n" +
+        "\n" +
+        "If the image contains no Monster Energy can: output an empty string. No words. Empty.";
 
     private readonly AnthropicClient _client = new(options.Value.Ai.ClaudeApiKey);
 

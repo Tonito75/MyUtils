@@ -12,17 +12,37 @@ public class MistralVisionService(
     ILogger<MistralVisionService> logger) : IVisionService
 {
     private const string Endpoint = "https://api.mistral.ai/v1/chat/completions";
-    private const string Model = "pixtral-12b-2409";
+    private const string Model = "pixtral-large-2411";
+
     private const string Prompt =
-        "You are an expert in Monster Energy drink products. Carefully examine this image. " +
-        "Identify the exact Monster Energy product visible. " +
-        "If the text on the can is hard to read, use the can's colors, design, and visual cues to determine which Monster product it is — every Monster variant has a distinctive color scheme. " +
-        "\n\nColor reference dictionary — use this to identify the product when unsure:\n" +
-        "- White can → Monster Energy Ultra White\n" +
-        "- Pink can with a slightly blue side and a slightly red side → Monster Energy Ultra Fantasy\n" +
+        "You are a Monster Energy can identifier. Your output is always one of two things:\n" +
+        "1. The exact product name from the list below\n" +
+        "2. An empty string\n" +
+        "Nothing else. Ever. No explanation. No apology. No sentence. Just the name or nothing.\n" +
         "\n" +
-        "Return ONLY the exact product name as a plain string (e.g. \"Monster Energy Ultra White\"). " +
-        "If you are certain there is no Monster Energy product in the image, return an empty string.";
+        "Known products — always return the name exactly as written here:\n" +
+        "Monster Ultra White, Monster Ultra Paradise, Monster Ultra Black, Monster Ultra Fiesta,\n" +
+        "Monster Ultra Red, Monster Ultra Violet, Monster Ultra Gold, Monster Ultra Blue,\n" +
+        "Monster Ultra Watermelon, Monster Ultra Rosé, Monster Ultra Strawberry Dreams, Monster Ultra Fantasy,\n" +
+        "Monster Energy Nitro, Monster Energy VR46,\n" +
+        "Monster Energy The Original, Monster Energy Full Throttle,\n" +
+        "Monster Energy Lando Norris, Monster Energy Pipeline Punch\n" +
+        "Juiced Monster Aussie Lemonade, Juiced Monster Pacific Punch, Juiced Monster Mango Loco,\n" +
+        "Juiced Monster Khaos, Juiced Monster Ripper\n" +
+        "\n" +
+        "If the text is unreadable, identify by color:\n" +
+        "- White can → Monster Ultra White\n" +
+        "- Green can → Monster Energy The Original\n" +
+        "- Black can → Monster Ultra Black\n" +
+        "- Teal/cyan can → Monster Ultra Fiesta\n" +
+        "- Red can → Monster Ultra Red\n" +
+        "- Purple can → Monster Ultra Violet\n" +
+        "- Yellow/gold can → Monster Ultra Gold\n" +
+        "- Light blue can → Monster Ultra Blue\n" +
+        "- Pink can (blue+red sides) → Monster Ultra Fantasy\n" +
+        "- Pink can → Monster Ultra Rosé\n" +
+        "\n" +
+        "If the image contains no Monster Energy can: output an empty string. No words. Empty.";
 
     public async Task<string?> AnalyzeAsync(byte[] imageBytes, string mediaType)
     {
@@ -32,15 +52,19 @@ public class MistralVisionService(
         var requestBody = new
         {
             model = Model,
-            messages = new[]
+            messages = new object[]
             {
+                new
+                {
+                    role = "system",
+                    content = Prompt
+                },
                 new
                 {
                     role = "user",
                     content = new object[]
                     {
-                        new { type = "image_url", image_url = new { url = imageUrl } },
-                        new { type = "text", text = Prompt }
+                        new { type = "image_url", image_url = new { url = imageUrl } }
                     }
                 }
             }

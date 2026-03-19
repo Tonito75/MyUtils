@@ -11,6 +11,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Nom).HasMaxLength(200).IsRequired();
             entity.Property(e => e.UtilisateurDiscord).HasMaxLength(200).IsRequired();
+            entity.Property(e => e.DiscordUserId);
             entity.Property(e => e.Date).HasColumnType("datetime2");
         });
 

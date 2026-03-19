@@ -30,7 +30,7 @@ public static class MonsterCatalog
 
         // ── Juiced ──────────────────────────────────────────────────────────
         new(["aussie lemonade", "aussie"],                             "Aussie Lemonade",        "🟡"),
-        new(["pacific punch", "pacific"],                              "Pacific Punch",          "🟤"),
+        new(["pacific"],                                               "Pacific Punch",          "🟤"),
         new(["mango loco", "mango"],                                   "Mango Loco",             "🔵"),
         new(["khaos"],                                                 "Khaos",                  "🟠"),
         new(["ripper"],                                                "Ripper",                 "🩷"),

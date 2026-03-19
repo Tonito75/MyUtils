@@ -123,10 +123,10 @@ public static class LanDeviceExtensions
         var dict = new Dictionary<string, (Func<string, string>? Action, string ColumnName)>
         {
             {"IsConnected", ((c) => (c == "True" ? Emojis.Connected : Emojis.UnConnected),"") },
-            {"Name", (null,"Name") },
-            {"IpAddress", (null, "Ip Address") },
+            {"Name", (s => s.Length > 20 ? s[..20] : s,"Name") },
+            {"IpAddress", (s => s.Length > 20 ? s[..20] : s, "Ip Address") },
             {"LastConnected", (DateAsStrIntoDaysFromToday, "LastConnected") },
-            {"Vendor", ((s) => !string.IsNullOrEmpty(s) ? s : "Unknown", "Vendor") },
+            {"Vendor", ((s) => !string.IsNullOrEmpty(s) ? (s.Length > 20 ? s[..20] : s) : "Unknown", "Vendor") },
         };
 
         var grid = new Grid<LanDevice>(devices.OrderByDescending(d => d.IsConnected).OrderByDescending(d => d.LastConnected).ToList(), dict);
@@ -139,7 +139,7 @@ public static class LanDeviceExtensions
         var dict = new Dictionary<string, (Func<string, string>? Action, string ColumnName)>
         {
             {"IsConnected", ((c) => (c == "True" ? Emojis.Connected : Emojis.UnConnected),"") },
-            {"Name", (null,"Name") },
+            {"Name", (s => s.Length > 20 ? s[..20] : s,"Name") },
         };
 
         var grid = new Grid<LanDevice>(devices.OrderByDescending(d => d.IsConnected).OrderByDescending(d => d.LastConnected).ToList(), dict);

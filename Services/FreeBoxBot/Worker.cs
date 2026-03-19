@@ -53,12 +53,14 @@ namespace DiscordBot
                 if (newDevices == null)
                 {
                     _logger.LogError("No devices were returned.");
-                    return;
+                    await Task.Delay(_delayMs, stoppingToken);
+                    continue;
                 }
                 if (!string.IsNullOrEmpty(error))
                 {
                     _logger.LogError($"Error while getting devices : {error}");
-                    return;
+                    await Task.Delay(_delayMs, stoppingToken);
+                    continue;
                 }
 
                 try

@@ -10,11 +10,6 @@ public static class PhotoEndpoints
     public static void MapPhotoEndpoints(this WebApplication app) { }
 }
 
-public static class ImageEndpoints
-{
-    public static void MapImageEndpoints(this WebApplication app) { }
-}
-
 public static class FriendEndpoints
 {
     public static void MapFriendEndpoints(this WebApplication app) { }

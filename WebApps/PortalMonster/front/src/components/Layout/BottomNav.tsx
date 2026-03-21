@@ -34,7 +34,7 @@ export default function BottomNav() {
       }}
     >
       <BottomNavigation
-        value={currentValue === -1 ? false : currentValue}
+        value={currentValue === -1 ? null : currentValue}
         onChange={(_, newValue) => navigate(NAV_ITEMS[newValue].path)}
       >
         {NAV_ITEMS.map((item) => (

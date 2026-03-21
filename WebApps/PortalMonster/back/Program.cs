@@ -87,10 +87,10 @@ builder.Services.AddSwaggerGen();
 var app = builder.Build();
 
 // Run migrations on startup
-using (var scope = app.Services.CreateScope())
+await using (var scope = app.Services.CreateAsyncScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    db.Database.Migrate();
+    await db.Database.MigrateAsync();
 }
 
 if (app.Environment.IsDevelopment())

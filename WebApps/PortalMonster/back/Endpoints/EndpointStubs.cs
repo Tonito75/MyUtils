@@ -15,7 +15,3 @@ public static class NotificationEndpoints
     public static void MapNotificationEndpoints(this WebApplication app) { }
 }
 
-public static class MonsterEndpoints
-{
-    public static void MapMonsterEndpoints(this WebApplication app) { }
-}

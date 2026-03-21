@@ -1,8 +1,8 @@
-import { ImageList, ImageListItem, Box } from '@mui/material'
-import type { PhotoDto } from '../api/photos'
-import FavoriteIcon from '@mui/icons-material/Favorite'
+import { Box } from '@mui/material'
 import { useState } from 'react'
+import type { PhotoDto } from '../api/photos'
 import { likePhoto, unlikePhoto } from '../api/photos'
+import GridPhotoCard from './GridPhotoCard'
 
 interface Props { photos: PhotoDto[] }
 
@@ -11,10 +11,14 @@ export default function PhotoGrid({ photos }: Props) {
     () => Object.fromEntries(photos.map((p) => [p.id, { liked: p.likedByMe, count: p.likesCount }]))
   )
 
+  // Sync new photos into likeState without overwriting existing
+  const mergedState = (photo: PhotoDto) =>
+    likeState[photo.id] ?? { liked: photo.likedByMe, count: photo.likesCount }
+
   const toggleLike = async (photo: PhotoDto) => {
-    const current = likeState[photo.id]
+    const current = mergedState(photo)
     try {
-      if (current?.liked) {
+      if (current.liked) {
         const res = await unlikePhoto(photo.id)
         setLikeState((s) => ({ ...s, [photo.id]: { liked: false, count: res.data.likesCount } }))
       } else {
@@ -25,23 +29,25 @@ export default function PhotoGrid({ photos }: Props) {
   }
 
   return (
-    <ImageList variant="masonry" cols={3} gap={4}>
+    <Box
+      sx={{
+        display: 'grid',
+        gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(3, 1fr)' },
+        gap: '12px',
+      }}
+    >
       {photos.map((photo) => {
-        const state = likeState[photo.id] ?? { liked: photo.likedByMe, count: photo.likesCount }
+        const state = mergedState(photo)
         return (
-          <ImageListItem key={photo.id} sx={{ position: 'relative', cursor: 'pointer' }}>
-            <img src={photo.imageUrl} alt={photo.monsterName} loading="lazy"
-              style={{ borderRadius: 4 }} />
-            <Box onClick={() => toggleLike(photo)}
-              sx={{ position: 'absolute', bottom: 4, right: 4, display: 'flex',
-                alignItems: 'center', gap: 0.5, bgcolor: 'rgba(0,0,0,0.6)',
-                borderRadius: 1, px: 0.75, py: 0.25 }}>
-              <FavoriteIcon sx={{ fontSize: 14, color: state.liked ? 'error.main' : 'white' }} />
-              <Box component="span" sx={{ color: 'white', fontSize: 12 }}>{state.count}</Box>
-            </Box>
-          </ImageListItem>
+          <GridPhotoCard
+            key={photo.id}
+            photo={photo}
+            liked={state.liked}
+            count={state.count}
+            onToggleLike={() => toggleLike(photo)}
+          />
         )
       })}
-    </ImageList>
+    </Box>
   )
 }

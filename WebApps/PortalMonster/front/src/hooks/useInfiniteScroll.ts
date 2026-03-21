@@ -1,15 +1,15 @@
 import { useRef, useCallback, useState } from 'react'
 
-interface UseInfiniteScrollOptions<T> {
-  fetcher: (cursor: T | undefined) => Promise<T[]>
-  getNextCursor: (items: T[]) => T | undefined
+interface UseInfiniteScrollOptions<T, C> {
+  fetcher: (cursor: C | undefined) => Promise<T[]>
+  getNextCursor: (items: T[]) => C | undefined
 }
 
-export function useInfiniteScroll<T>({ fetcher, getNextCursor }: UseInfiniteScrollOptions<T>) {
+export function useInfiniteScroll<T, C = T>({ fetcher, getNextCursor }: UseInfiniteScrollOptions<T, C>) {
   const [items, setItems] = useState<T[]>([])
   const [loading, setLoading] = useState(false)
   const [hasMore, setHasMore] = useState(true)
-  const cursor = useRef<T | undefined>(undefined)
+  const cursor = useRef<C | undefined>(undefined)
   const observer = useRef<IntersectionObserver | null>(null)
 
   const loadMore = useCallback(async () => {

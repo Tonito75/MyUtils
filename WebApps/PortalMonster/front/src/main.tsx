@@ -107,10 +107,7 @@ const theme = createTheme({
         root: {
           color: '#8888aa',
           '&.Mui-selected': {
-            background: gradientPrimary,
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            backgroundClip: 'text',
+            color: '#9d63f5',
           },
           '&.Mui-selected .MuiBottomNavigationAction-label': {
             fontSize: '0.7rem',

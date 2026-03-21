@@ -135,7 +135,6 @@ public static class UserEndpoints
                 .Take(pageSize)
                 .Include(p => p.User)
                 .Include(p => p.Monster)
-                .Include(p => p.Likes)
                 .ToListAsync();
 
             var likedIds = photos.Select(p => p.Id).ToList();

@@ -160,7 +160,7 @@ export default function ExplorePage() {
         {/* Sheet header */}
         <Box sx={{ display: 'flex', alignItems: 'center', px: 2.5, pt: 2, pb: 1, flexShrink: 0 }}>
           <Typography variant="subtitle1" fontWeight={700} sx={{ flexGrow: 1 }}>
-            Filtrer par monster
+            Filtrer par monstre
           </Typography>
           <IconButton size="small" onClick={() => setFilterOpen(false)} sx={{ color: 'text.secondary' }}>
             <CloseIcon />
@@ -179,7 +179,6 @@ export default function ExplorePage() {
                 label={`${m.emoji} ${m.name}`}
                 onClick={() => togglePending(m.id)}
                 color={pendingMonsters.includes(m.id) ? 'primary' : 'default'}
-                sx={{ cursor: 'pointer' }}
               />
             ))}
           </Stack>

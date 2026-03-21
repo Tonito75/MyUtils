@@ -1,10 +1,5 @@
 namespace MonsterHub.Api.Endpoints;
 
-public static class PhotoEndpoints
-{
-    public static void MapPhotoEndpoints(this WebApplication app) { }
-}
-
 public static class FriendEndpoints
 {
     public static void MapFriendEndpoints(this WebApplication app) { }

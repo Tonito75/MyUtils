@@ -18,7 +18,6 @@ public static class NotificationEndpoints
             var notifications = await db.Notifications
                 .Where(n => n.RecipientId == userId)
                 .OrderByDescending(n => n.CreatedAt)
-                .Include(n => n.Recipient)
                 .ToListAsync();
 
             // Intentional: GET with write side-effect for simplicity (spec §5)

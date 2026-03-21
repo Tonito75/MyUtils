@@ -53,6 +53,12 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
             .HasForeignKey(l => l.UserId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        builder.Entity<Notification>()
+            .HasOne(n => n.Recipient)
+            .WithMany()
+            .HasForeignKey(n => n.RecipientId)
+            .OnDelete(DeleteBehavior.Cascade);
+
         // Seed MonsterMapping
         builder.Entity<MonsterMapping>().HasData(GetMonsterSeed());
     }

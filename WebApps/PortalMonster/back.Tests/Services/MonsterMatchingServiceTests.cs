@@ -13,6 +13,8 @@ public class MonsterMatchingServiceTests
             KeywordsJson = """["the original","original energy"]""" },
         new() { Id = 3, Name = "Ultra Gold", Emoji = "🟡",
             KeywordsJson = """["ultra gold","gold"]""" },
+        new() { Id = 4, Name = "Fake Gold", Emoji = "🟤",
+            KeywordsJson = """["gold","fake gold"]""" },
     ];
 
     [Fact]
@@ -60,10 +62,19 @@ public class MonsterMatchingServiceTests
     }
 
     [Fact]
+    public void Match_NullInput_ReturnsNull()
+    {
+        var svc = new MonsterMatchingService();
+        var result = svc.Match(null!, BuildMappings());
+        Assert.Null(result);
+    }
+
+    [Fact]
     public void Match_FirstMatchWins_WhenAmbiguous()
     {
         var svc = new MonsterMatchingService();
-        // "gold" matches "ultra gold" (id=3) — first match by Id order
+        // "gold" matches both Id=3 ("ultra gold","gold") and Id=4 ("gold","fake gold")
+        // proves first-by-Id ordering wins
         var result = svc.Match("gold", BuildMappings());
         Assert.NotNull(result);
         Assert.Equal(3, result.Id);

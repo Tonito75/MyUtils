@@ -79,9 +79,9 @@ export default function PhotoGrid({ photos }: Props) {
               </Box>
               <Box sx={{ flexGrow: 1, minWidth: 0 }}>
                 <Typography variant="body2" fontWeight={700} noWrap>{openPhoto.username}</Typography>
-                <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.25, px: 0.75, py: 0.125, borderRadius: '20px', background: 'var(--gradient-primary)', mt: 0.25 }}>
+                <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.25, px: 0.75, py: 0.125, borderRadius: '20px', bgcolor: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(6px)', border: '1px solid rgba(255,255,255,0.1)', mt: 0.25 }}>
                   <Typography sx={{ fontSize: 11, lineHeight: 1 }}>{openPhoto.monsterEmoji}</Typography>
-                  <Typography sx={{ fontSize: 10, fontWeight: 700, color: '#fff', lineHeight: 1 }}>{openPhoto.monsterName}</Typography>
+                  <Typography sx={{ fontSize: 10, fontWeight: 600, color: 'rgba(255,255,255,0.85)', lineHeight: 1 }}>{openPhoto.monsterName}</Typography>
                 </Box>
               </Box>
               <IconButton size="small" onClick={() => setOpenPhoto(null)} sx={{ color: 'text.secondary' }}>

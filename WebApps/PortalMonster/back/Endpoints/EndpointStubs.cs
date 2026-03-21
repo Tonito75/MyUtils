@@ -1,10 +1,5 @@
 namespace MonsterHub.Api.Endpoints;
 
-public static class AuthEndpoints
-{
-    public static void MapAuthEndpoints(this WebApplication app) { }
-}
-
 public static class UserEndpoints
 {
     public static void MapUserEndpoints(this WebApplication app) { }

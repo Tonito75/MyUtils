@@ -102,7 +102,7 @@ AppUser Addressee
 int Id
 string RecipientId     // FK → AppUser
 NotificationType Type  // enum: FriendRequest
-int RelatedEntityId    // ex: UserId de l'expéditeur
+string RelatedEntityId // ex: UserId (string/GUID) de l'expéditeur de la demande d'ami
 bool IsRead
 DateTime CreatedAt
 AppUser Recipient
@@ -113,11 +113,13 @@ AppUser Recipient
 int Id
 string Name            // ex: "Ultra White"
 string Emoji           // ex: "⚪"
-string Color           // ex: "#FFFFFF"
+string? Color          // ex: "#FFFFFF" — nullable, non utilisé en v1
 string KeywordsJson    // JSON array: ["ultra white", "white monster"]
 ```
 
 ### Seed data MonsterMapping
+
+Le matching keywords → MonsterMapping se fait par **premier match** : on itère les MonsterMapping dans l'ordre d'Id et on retourne le premier dont un keyword est contenu dans la réponse Mistral (case-insensitive).
 
 | Keywords | Name | Emoji |
 |---|---|---|
@@ -152,43 +154,86 @@ string KeywordsJson    // JSON array: ["ultra white", "white monster"]
 
 ### Auth
 ```
-POST /api/auth/register    body: { username, email, password }  → JWT
-POST /api/auth/login       body: { username, password }         → JWT
+POST /api/auth/register    body: { username, email, password }  → { token: "<jwt>" }
+POST /api/auth/login       body: { username, password }         → { token: "<jwt>" }
 ```
 
 ### Users
 ```
-GET    /api/users/me                  → profil courant (id, username, email, avatarUrl)
-PUT    /api/users/me                  → update email et/ou password
-PUT    /api/users/me/avatar           → multipart: upload photo de profil
-GET    /api/users/search?q=           → recherche par username (exclude self + amis existants)
-GET    /api/users/{id}/photos         → photos paginées d'un utilisateur
+GET    /api/users/me
+  → { id, username, email, avatarUrl, photoCount, friendCount }
+
+PUT    /api/users/me
+  body: { currentPassword, newEmail?, newPassword? }
+  → currentPassword toujours requis (même si seul newEmail est fourni)
+  → si newPassword fourni : UserManager.ChangePasswordAsync(currentPassword, newPassword)
+  → si newEmail fourni (sans newPassword) : vérifier currentPassword via
+    UserManager.CheckPasswordAsync, puis UserManager.SetEmailAsync + SetUserNameAsync si besoin
+  → retourne 400 si currentPassword incorrect
+  → retourne { email, username } mis à jour
+
+PUT    /api/users/me/avatar
+  body: multipart/form-data (file)
+  → retourne { avatarUrl } (nouvelle URL à jour pour mise à jour UI immédiate)
+
+GET    /api/users/search?q=
+  → recherche par username (exclude self + amis existants + demandes en cours)
+  → retourne au maximum 20 résultats
+
+GET    /api/users/{id}/photos?cursor=&limit=10
+  → photos paginées d'un utilisateur
 ```
 
 ### Photos
 ```
-GET    /api/photos/feed               → photos des amis (cursor pagination, 10/page)
-GET    /api/photos/explore            → toutes les photos (offset, 20/page, ?monsterIds=1,2)
-POST   /api/photos/analyze            → multipart image → { monsterId, monsterName, emoji } ou 404
-POST   /api/photos                    → multipart image + monsterId → publie
-DELETE /api/photos/{id}               → supprime (owner uniquement)
-POST   /api/photos/{id}/like          → like
-DELETE /api/photos/{id}/like          → unlike
-GET    /api/images/{*path}            → proxy FTP → bytes image (Cache-Control: max-age=86400)
+GET    /api/photos/feed?cursor=&limit=10
+  → photos des amis (cursor = id de la dernière photo reçue, absent pour première page)
+
+GET    /api/photos/explore?offset=0&limit=20&seed=<int>&monsterIds=1,2
+  → toutes les photos, ordre pseudo-random
+  → seed: entier fourni par le client (généré au chargement initial de la page, stable
+    pour toute la session de scroll), permet un ORDER BY NEWID() avec seed côté SQL Server
+    ou un tri reproductible. En pratique: ORDER BY (Id * seed) % largeNumber.
+  → monsterIds: filtre optionnel multi-valeur
+
+POST   /api/photos/analyze
+  body: multipart/form-data (file, max 10 MB)
+  → 200 { monsterId, monsterName, emoji }  si canette détectée
+  → 422  si aucune canette détectée ou réponse Mistral vide
+
+POST   /api/photos
+  body: multipart/form-data (file, max 10 MB) + monsterId: int
+  → 201 { photoId, imageUrl }
+
+DELETE /api/photos/{id}          → supprime (owner uniquement, 403 sinon)
+POST   /api/photos/{id}/like     → 200 { likesCount }
+DELETE /api/photos/{id}/like     → 200 { likesCount }
+
+GET    /api/images/{*path}
+  → proxy FTP → bytes image
+  → Cache-Control: public, max-age=86400
+  → {*path} correspond à la valeur de FilePath stockée en base
+    (ex: photos/userId/guid.jpg)
+  → le frontend construit l'URL: /api/images/{photo.filePath}
 ```
 
 ### Friends
 ```
 GET    /api/friends                         → liste amis acceptés
 GET    /api/friends/requests                → demandes reçues en attente
-POST   /api/friends/{userId}                → envoyer demande (crée Notification)
+POST   /api/friends/{userId}                → envoyer demande (Status=Pending, crée Notification)
 PUT    /api/friends/{userId}/accept         → accepter (Status → Accepted)
-DELETE /api/friends/{userId}                → décliner ou supprimer amitié
+DELETE /api/friends/{userId}                → décliner ou supprimer amitié (supprime la ligne en base)
 ```
+Note : un refus de demande **supprime la ligne** `UserFriendship` (pas de statut `Declined`).
+L'expéditeur peut renvoyer une demande ultérieurement.
 
 ### Notifications
 ```
-GET    /api/notifications             → liste notifs (marque tout IsRead=true au passage)
+GET    /api/notifications
+  → retourne la liste des notifs du user courant
+  → marque TOUTES les notifs comme IsRead=true dans la même transaction
+  → note: GET avec side-effect write est intentionnel ici (simplicité v1)
 ```
 
 ### Monsters
@@ -217,7 +262,7 @@ GET    /api/monsters                  → liste complète MonsterMapping
 ```
 - Logo : lien vers `/`
 - `+` : lien vers `/upload`
-- `🔔` : ouvre MUI Popover, marque tout lu, liste les demandes d'amis avec boutons Accepter/Décliner inline
+- `🔔` : ouvre MUI Popover, marque tout lu, liste les demandes d'amis avec boutons Accepter/Décliner inline. Si aucune notif : affiche "Aucune nouvelle notification"
 - `Avatar` : lien vers `/profile`, affiche initiales si pas de photo de profil
 
 ### FeedPage (`/`)
@@ -249,6 +294,7 @@ GET    /api/monsters                  → liste complète MonsterMapping
 - Onglet "Mes amis" : liste avec bouton Supprimer
 - Onglet "Demandes reçues" : liste avec boutons Accepter / Décliner
 - Barre de recherche : appel `/api/users/search?q=`, résultats avec bouton "Ajouter"
+  - Après envoi de la demande, le bouton "Ajouter" devient "En attente" (désactivé) sans rechargement de page
 
 ### MyProfilePage (`/profile`)
 - En-tête : avatar (cliquable pour changer), username, nombre de photos, nombre d'amis
@@ -259,16 +305,20 @@ GET    /api/monsters                  → liste complète MonsterMapping
 - Token stocké en `localStorage`
 - Axios interceptor : injecte `Authorization: Bearer <token>` sur chaque requête
 - Si 401 reçu : redirect vers `/login`
+- **Pas de refresh token en v1** : les tokens ont une durée de vie de 30 jours. À expiration, l'utilisateur est redirigé vers `/login`. C'est intentionnel pour simplifier l'implémentation.
 
 ---
 
 ## 7. Stockage des images
 
 - **Upload** : image reçue par le backend en multipart → envoyée sur le NAS via `FTPService.Send(byte[], remotePath)`
-- **Chemin NAS** : `/{photos|avatars}/{userId}/{guid}.{ext}`
-- **Lecture** : endpoint `GET /api/images/{*path}` télécharge via `FTPService` et retourne les bytes avec le bon `Content-Type`
+- **Chemin NAS complet** : `{BaseRemotePath}/{photos|avatars}/{userId}/{guid}.{ext}` (ex: `/monsterhub/photos/abc123/photo.jpg`)
+- **FilePath stocké en base** : chemin relatif à `BaseRemotePath`, ex: `photos/abc123/photo.jpg`
+- **Construction URL frontend** : `/api/images/photos/abc123/photo.jpg` (le frontend concatène `/api/images/` + `photo.filePath`)
+- **Lecture** : l'endpoint `GET /api/images/{*path}` préfixe `{*path}` avec `BaseRemotePath`, télécharge via `FTPService` et retourne les bytes avec le bon `Content-Type`
 - **Cache** : `Cache-Control: public, max-age=86400` sur les réponses images
-- **Evolution future** : pour passer à HTTP direct depuis le NAS, seul le `FilePath` stocké en base et l'endpoint `/api/images` sont à modifier
+- **Taille max** : 10 MB par image (configuré dans ASP.NET `MaxRequestBodySize` et Caddyfile `request_body max_size 10MB`)
+- **Evolution future** : pour passer à HTTP direct depuis le NAS, seul le service de stockage et la valeur de `FilePath` sont à modifier
 
 ---
 
@@ -305,6 +355,7 @@ WebApps/PortalMonster/
 ### Caddyfile (prod)
 ```
 monsterhub.example.com {
+    request_body max_size 10MB
     reverse_proxy /api/* back:5000
     reverse_proxy * front:80
 }

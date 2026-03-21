@@ -405,3 +405,6 @@ FodyWeavers.xsd
 #Claude
 .claude/
 **/tmpclaude*
+
+# Git worktrees
+.worktrees/

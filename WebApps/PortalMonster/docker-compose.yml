@@ -1,0 +1,36 @@
+services:
+  back:
+    build: ./back
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__DefaultConnection=${DB_CONNECTION_STRING}
+      - Jwt__Secret=${JWT_SECRET}
+      - Mistral__ApiKey=${MISTRAL_API_KEY}
+      - Ftp__Host=${FTP_HOST}
+      - Ftp__Port=${FTP_PORT:-21}
+      - Ftp__UserName=${FTP_USER}
+      - Ftp__Password=${FTP_PASSWORD}
+      - Ftp__BaseRemotePath=${FTP_BASE_PATH:-/monsterhub}
+    restart: unless-stopped
+
+  front:
+    build: ./front
+    restart: unless-stopped
+
+  caddy:
+    image: caddy:2-alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - back
+      - front
+    restart: unless-stopped
+
+volumes:
+  caddy_data:
+  caddy_config:

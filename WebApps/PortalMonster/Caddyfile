@@ -1,0 +1,5 @@
+monsterhub.example.com {
+    request_body max_size 10MB
+    reverse_proxy /api/* back:8080
+    reverse_proxy * front:80
+}

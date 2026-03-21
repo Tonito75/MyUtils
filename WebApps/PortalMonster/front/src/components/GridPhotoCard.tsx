@@ -8,9 +8,10 @@ interface Props {
   liked: boolean
   count: number
   onToggleLike: () => void
+  onOpen: () => void
 }
 
-export default function GridPhotoCard({ photo, liked, count, onToggleLike }: Props) {
+export default function GridPhotoCard({ photo, liked, count, onToggleLike, onOpen }: Props) {
   return (
     <Box
       sx={{
@@ -30,7 +31,10 @@ export default function GridPhotoCard({ photo, liked, count, onToggleLike }: Pro
       }}
     >
       {/* Image */}
-      <Box sx={{ position: 'relative', width: '100%', aspectRatio: '1/1', overflow: 'hidden', bgcolor: '#0a0a18' }}>
+      <Box
+        onClick={onOpen}
+        sx={{ position: 'relative', width: '100%', aspectRatio: '1/1', overflow: 'hidden', bgcolor: '#0a0a18', cursor: 'pointer' }}
+      >
         <img
           src={photo.imageUrl}
           alt={photo.monsterName}

@@ -92,17 +92,35 @@ export default function ProfilePage() {
     <Box>
       {/* Profile header */}
       <Stack direction="row" spacing={2} alignItems="center" mb={3}>
-        <Box sx={{ position: 'relative' }}>
-          <Avatar src={profile?.avatarUrl ?? undefined}
-            sx={{ width: 72, height: 72, bgcolor: 'primary.main', fontSize: 28, cursor: 'pointer' }}
-            onClick={() => avatarInputRef.current?.click()}>
-            {user?.username.slice(0, 2).toUpperCase()}
-          </Avatar>
+        <Box sx={{ position: 'relative', flexShrink: 0 }}>
+          {/* Gradient ring around avatar */}
+          <Box
+            sx={{ p: '3px', borderRadius: '50%', background: 'var(--gradient-primary)', cursor: 'pointer' }}
+            onClick={() => avatarInputRef.current?.click()}
+          >
+            <Avatar
+              src={profile?.avatarUrl ?? undefined}
+              sx={{ width: 72, height: 72, bgcolor: 'background.paper', fontSize: 28, fontWeight: 700, border: '3px solid', borderColor: 'background.paper' }}
+            >
+              {user?.username?.slice(0, 2).toUpperCase()}
+            </Avatar>
+          </Box>
           <input ref={avatarInputRef} type="file" accept="image/*"
             style={{ display: 'none' }} onChange={handleAvatarChange} />
         </Box>
         <Box sx={{ flexGrow: 1 }}>
-          <Typography variant="h6" fontWeight={700}>{user?.username}</Typography>
+          <Typography
+            variant="h6"
+            fontWeight={800}
+            sx={{
+              background: 'var(--gradient-primary)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
+            }}
+          >
+            {user?.username}
+          </Typography>
           <Typography variant="body2" color="text.secondary">
             {profile?.photoCount ?? 0} photos · {profile?.friendCount ?? 0} amis
           </Typography>

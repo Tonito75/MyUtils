@@ -2,6 +2,8 @@ using System.Net.Http.Headers;
 using System.Text.Json;
 using Microsoft.Extensions.Options;
 using MonsterHub.Api.Settings;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Processing;
 
 namespace MonsterHub.Api.Services;
 
@@ -30,10 +32,24 @@ public class MistralVisionService(
         "\n" +
         "If the image contains no Monster Energy can: output an empty string.";
 
+    private static byte[] ResizeForAnalysis(byte[] imageBytes)
+    {
+        using var image = Image.Load(imageBytes);
+        image.Mutate(x => x.Resize(new ResizeOptions
+        {
+            Size = new Size(512, 512),
+            Mode = ResizeMode.Max
+        }));
+        using var ms = new MemoryStream();
+        image.SaveAsJpeg(ms, new SixLabors.ImageSharp.Formats.Jpeg.JpegEncoder { Quality = 50 });
+        return ms.ToArray();
+    }
+
     public async Task<string?> AnalyzeAsync(byte[] imageBytes, string mediaType)
     {
-        var base64 = Convert.ToBase64String(imageBytes);
-        var imageUrl = $"data:{mediaType};base64,{base64}";
+        var resized = ResizeForAnalysis(imageBytes);
+        var base64 = Convert.ToBase64String(resized);
+        var imageUrl = $"data:image/jpeg;base64,{base64}";
 
         var requestBody = new
         {

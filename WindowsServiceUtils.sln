@@ -62,6 +62,62 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Éléments de solution", "�
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MonsterBot", "Services\MonsterBot\MonsterBot.csproj", "{11126D4C-D00E-4CD1-B53F-A93130C9A519}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "PortalMonster", "PortalMonster", "{005481CB-6BE8-4CA8-8363-845EF0764DBB}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "back", "back", "{F32D7A9C-701D-4FBF-A0DB-A84B085734A6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MonsterHub.Api", "WebApps\PortalMonster\back\MonsterHub.Api.csproj", "{D551BC4C-3156-4F7B-9238-C66DF0CA98DD}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "front", "front", "{C27CD471-90B8-4A1A-9796-36A7A768EA49}"
+	ProjectSection(SolutionItems) = preProject
+		WebApps\PortalMonster\front\.env.development = WebApps\PortalMonster\front\.env.development
+		WebApps\PortalMonster\front\.env.production = WebApps\PortalMonster\front\.env.production
+		WebApps\PortalMonster\front\.gitignore = WebApps\PortalMonster\front\.gitignore
+		WebApps\PortalMonster\front\Dockerfile = WebApps\PortalMonster\front\Dockerfile
+		WebApps\PortalMonster\front\eslint.config.js = WebApps\PortalMonster\front\eslint.config.js
+		WebApps\PortalMonster\front\index.html = WebApps\PortalMonster\front\index.html
+		WebApps\PortalMonster\front\nginx.conf = WebApps\PortalMonster\front\nginx.conf
+		WebApps\PortalMonster\front\package-lock.json = WebApps\PortalMonster\front\package-lock.json
+		WebApps\PortalMonster\front\package.json = WebApps\PortalMonster\front\package.json
+		WebApps\PortalMonster\front\public\favicon.svg = WebApps\PortalMonster\front\public\favicon.svg
+		WebApps\PortalMonster\front\public\icons.svg = WebApps\PortalMonster\front\public\icons.svg
+		WebApps\PortalMonster\front\README.md = WebApps\PortalMonster\front\README.md
+		WebApps\PortalMonster\front\src\api\auth.ts = WebApps\PortalMonster\front\src\api\auth.ts
+		WebApps\PortalMonster\front\src\api\client.ts = WebApps\PortalMonster\front\src\api\client.ts
+		WebApps\PortalMonster\front\src\api\friends.ts = WebApps\PortalMonster\front\src\api\friends.ts
+		WebApps\PortalMonster\front\src\api\monsters.ts = WebApps\PortalMonster\front\src\api\monsters.ts
+		WebApps\PortalMonster\front\src\api\notifications.ts = WebApps\PortalMonster\front\src\api\notifications.ts
+		WebApps\PortalMonster\front\src\api\photos.ts = WebApps\PortalMonster\front\src\api\photos.ts
+		WebApps\PortalMonster\front\src\api\users.ts = WebApps\PortalMonster\front\src\api\users.ts
+		WebApps\PortalMonster\front\src\App.css = WebApps\PortalMonster\front\src\App.css
+		WebApps\PortalMonster\front\src\App.tsx = WebApps\PortalMonster\front\src\App.tsx
+		WebApps\PortalMonster\front\src\assets\hero.png = WebApps\PortalMonster\front\src\assets\hero.png
+		WebApps\PortalMonster\front\src\assets\react.svg = WebApps\PortalMonster\front\src\assets\react.svg
+		WebApps\PortalMonster\front\src\assets\vite.svg = WebApps\PortalMonster\front\src\assets\vite.svg
+		WebApps\PortalMonster\front\src\components\Layout\AppLayout.tsx = WebApps\PortalMonster\front\src\components\Layout\AppLayout.tsx
+		WebApps\PortalMonster\front\src\components\Layout\Header.tsx = WebApps\PortalMonster\front\src\components\Layout\Header.tsx
+		WebApps\PortalMonster\front\src\components\NotificationPopover.tsx = WebApps\PortalMonster\front\src\components\NotificationPopover.tsx
+		WebApps\PortalMonster\front\src\components\PhotoCard.tsx = WebApps\PortalMonster\front\src\components\PhotoCard.tsx
+		WebApps\PortalMonster\front\src\components\PhotoGrid.tsx = WebApps\PortalMonster\front\src\components\PhotoGrid.tsx
+		WebApps\PortalMonster\front\src\components\ProtectedRoute.tsx = WebApps\PortalMonster\front\src\components\ProtectedRoute.tsx
+		WebApps\PortalMonster\front\src\contexts\AuthContext.tsx = WebApps\PortalMonster\front\src\contexts\AuthContext.tsx
+		WebApps\PortalMonster\front\src\hooks\useInfiniteScroll.ts = WebApps\PortalMonster\front\src\hooks\useInfiniteScroll.ts
+		WebApps\PortalMonster\front\src\hooks\useNotifications.ts = WebApps\PortalMonster\front\src\hooks\useNotifications.ts
+		WebApps\PortalMonster\front\src\index.css = WebApps\PortalMonster\front\src\index.css
+		WebApps\PortalMonster\front\src\main.tsx = WebApps\PortalMonster\front\src\main.tsx
+		WebApps\PortalMonster\front\src\pages\ExplorePage.tsx = WebApps\PortalMonster\front\src\pages\ExplorePage.tsx
+		WebApps\PortalMonster\front\src\pages\FeedPage.tsx = WebApps\PortalMonster\front\src\pages\FeedPage.tsx
+		WebApps\PortalMonster\front\src\pages\FriendsPage.tsx = WebApps\PortalMonster\front\src\pages\FriendsPage.tsx
+		WebApps\PortalMonster\front\src\pages\LoginPage.tsx = WebApps\PortalMonster\front\src\pages\LoginPage.tsx
+		WebApps\PortalMonster\front\src\pages\ProfilePage.tsx = WebApps\PortalMonster\front\src\pages\ProfilePage.tsx
+		WebApps\PortalMonster\front\src\pages\RegisterPage.tsx = WebApps\PortalMonster\front\src\pages\RegisterPage.tsx
+		WebApps\PortalMonster\front\src\pages\UploadPage.tsx = WebApps\PortalMonster\front\src\pages\UploadPage.tsx
+		WebApps\PortalMonster\front\tsconfig.app.json = WebApps\PortalMonster\front\tsconfig.app.json
+		WebApps\PortalMonster\front\tsconfig.json = WebApps\PortalMonster\front\tsconfig.json
+		WebApps\PortalMonster\front\tsconfig.node.json = WebApps\PortalMonster\front\tsconfig.node.json
+		WebApps\PortalMonster\front\vite.config.ts = WebApps\PortalMonster\front\vite.config.ts
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -128,6 +184,10 @@ Global
 		{11126D4C-D00E-4CD1-B53F-A93130C9A519}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{11126D4C-D00E-4CD1-B53F-A93130C9A519}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{11126D4C-D00E-4CD1-B53F-A93130C9A519}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D551BC4C-3156-4F7B-9238-C66DF0CA98DD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D551BC4C-3156-4F7B-9238-C66DF0CA98DD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D551BC4C-3156-4F7B-9238-C66DF0CA98DD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D551BC4C-3156-4F7B-9238-C66DF0CA98DD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -149,6 +209,10 @@ Global
 		{70197FD6-E6A9-B956-0EAB-204D10A67DFD} = {532D8031-7A5E-4EF7-8CDD-42B387971304}
 		{F0165626-2C6F-26E1-E2D9-124F537285A5} = {8AAA7BFB-EECF-4D67-8264-E5E9720D636D}
 		{11126D4C-D00E-4CD1-B53F-A93130C9A519} = {532D8031-7A5E-4EF7-8CDD-42B387971304}
+		{005481CB-6BE8-4CA8-8363-845EF0764DBB} = {8AAA7BFB-EECF-4D67-8264-E5E9720D636D}
+		{F32D7A9C-701D-4FBF-A0DB-A84B085734A6} = {005481CB-6BE8-4CA8-8363-845EF0764DBB}
+		{D551BC4C-3156-4F7B-9238-C66DF0CA98DD} = {F32D7A9C-701D-4FBF-A0DB-A84B085734A6}
+		{C27CD471-90B8-4A1A-9796-36A7A768EA49} = {005481CB-6BE8-4CA8-8363-845EF0764DBB}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {06F8FFE9-81DD-4699-8586-881564C6D3E5}

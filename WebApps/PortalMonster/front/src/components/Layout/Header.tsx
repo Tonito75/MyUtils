@@ -1,16 +1,19 @@
 import { useState } from 'react'
-import { AppBar, Toolbar, IconButton, Badge, Avatar, Box, Tooltip, Button } from '@mui/material'
+import { AppBar, Toolbar, IconButton, Badge, Avatar, Box, Tooltip, Button, Menu, MenuItem, ListItemIcon, ListItemText } from '@mui/material'
 import NotificationsIcon from '@mui/icons-material/Notifications'
 import AddIcon from '@mui/icons-material/Add'
+import AccountCircleIcon from '@mui/icons-material/AccountCircle'
+import LogoutIcon from '@mui/icons-material/Logout'
 import { useNavigate, NavLink } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import NotificationPopover from '../NotificationPopover'
 import { useNotifications } from '../../hooks/useNotifications'
 
 export default function Header() {
-  const { user } = useAuth()
+  const { user, signOut } = useAuth()
   const navigate = useNavigate()
   const [bellAnchor, setBellAnchor] = useState<HTMLElement | null>(null)
+  const [avatarAnchor, setAvatarAnchor] = useState<HTMLElement | null>(null)
   const { unreadCount, markRead } = useNotifications()
 
   const handleBellClick = (e: React.MouseEvent<HTMLElement>) => {
@@ -112,7 +115,7 @@ export default function Header() {
                 fontWeight: 700,
                 cursor: 'pointer',
               }}
-              onClick={() => navigate('/profile')}
+              onClick={(e) => setAvatarAnchor(e.currentTarget)}
             >
               {user?.username?.slice(0, 2).toUpperCase()}
             </Avatar>
@@ -121,6 +124,22 @@ export default function Header() {
       </Toolbar>
 
       <NotificationPopover anchorEl={bellAnchor} onClose={() => setBellAnchor(null)} />
+
+      <Menu
+        anchorEl={avatarAnchor}
+        open={Boolean(avatarAnchor)}
+        onClose={() => setAvatarAnchor(null)}
+        slotProps={{ paper: { sx: { mt: 1, minWidth: 160 } } }}
+      >
+        <MenuItem onClick={() => { setAvatarAnchor(null); navigate('/profile') }}>
+          <ListItemIcon><AccountCircleIcon fontSize="small" /></ListItemIcon>
+          <ListItemText>Mon profil</ListItemText>
+        </MenuItem>
+        <MenuItem onClick={() => { signOut(); navigate('/login') }}>
+          <ListItemIcon><LogoutIcon fontSize="small" /></ListItemIcon>
+          <ListItemText>Se déconnecter</ListItemText>
+        </MenuItem>
+      </Menu>
     </AppBar>
   )
 }

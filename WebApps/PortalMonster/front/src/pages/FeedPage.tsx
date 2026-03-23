@@ -16,15 +16,14 @@ export default function FeedPage() {
   const { items, loading, hasMore, sentinelRef } = useInfiniteScroll({ fetcher, getNextCursor })
 
   return (
-    <Box>
-      <Typography variant="h6" mb={2} fontWeight={700}>Mon fil</Typography>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
       {items.map((photo) => <PhotoCard key={photo.id} photo={photo} />)}
       {items.length === 0 && !loading && (
-        <Typography color="text.secondary" textAlign="center" mt={4}>
+        <Typography color="text.secondary" textAlign="center" mt={6} fontSize={14}>
           Aucune photo pour le moment. Ajoutez des amis pour voir leur fil !
         </Typography>
       )}
-      <Box ref={sentinelRef} sx={{ py: 2, textAlign: 'center' }}>
+      <Box ref={sentinelRef} sx={{ py: 3, textAlign: 'center' }}>
         {loading && <CircularProgress size={24} />}
         {!hasMore && items.length > 0 && (
           <Typography variant="body2" color="text.secondary">C'est tout !</Typography>

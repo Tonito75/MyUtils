@@ -81,12 +81,14 @@ export default function PhotoCard({ photo }: Props) {
               px: 0.75,
               py: 0.125,
               borderRadius: '20px',
-              background: 'var(--gradient-primary)',
+              bgcolor: 'rgba(0,0,0,0.35)',
+              backdropFilter: 'blur(6px)',
+              border: '1px solid rgba(255,255,255,0.1)',
               mt: 0.25,
             }}
           >
             <Typography sx={{ fontSize: 11, lineHeight: 1 }}>{photo.monsterEmoji}</Typography>
-            <Typography sx={{ fontSize: 10, fontWeight: 700, color: '#fff', lineHeight: 1 }}>
+            <Typography sx={{ fontSize: 10, fontWeight: 600, color: 'rgba(255,255,255,0.85)', lineHeight: 1 }}>
               {photo.monsterName}
             </Typography>
           </Box>
